@@ -1,0 +1,52 @@
+{
+  "name": "uthman-portfolio",
+  "private": true,
+  "description": "Uthman's Portfolio website with React frontend and Sanity CMS in a monorepo setup",
+  "workspaces": [
+    "frontend",
+    "cms"
+  ],
+  "scripts": {
+    "dev": "concurrently \"npm run dev --workspace=frontend\" \"npm run dev --workspace=cms\"",
+    "install:all": "npm install",
+    "install:frontend": "npm install --workspace=frontend",
+    "install:cms": "npm install --workspace=cms",
+    "dev:frontend": "npm run dev --workspace=frontend",
+    "dev:cms": "npm run dev --workspace=cms",
+    "build:frontend": "npm run build --workspace=frontend",
+    "build:cms": "npm run build --workspace=cms",
+    "build": "npm run build --workspace=frontend && npm run build --workspace=cms",
+    "clean": "npm run clean:all && npm run install:all",
+    "clean:all": "rimraf node_modules frontend/node_modules cms/node_modules package-lock.json frontend/package-lock.json cms/package-lock.json",
+    "clean:frontend": "rimraf frontend/node_modules frontend/package-lock.json",
+    "clean:cms": "rimraf cms/node_modules cms/package-lock.json",
+    "clean:root": "rimraf node_modules package-lock.json",
+    "fresh": "npm run clean:all && npm run install:all",
+    "lint": "npm run lint --workspaces --if-present",
+    "lint:frontend": "npm run lint --workspace=frontend",
+    "lint:cms": "npm run lint --workspace=cms",
+    "lint:fix": "npm run lint:fix --workspaces --if-present",
+    "lint:fix:frontend": "npm run lint:fix --workspace=frontend",
+    "lint:fix:cms": "npm run lint:fix --workspace=cms"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2",
+    "rimraf": "^5.0.5"
+  },
+  "engines": {
+    "node": ">=16.0.0",
+    "npm": ">=7.0.0"
+  },
+  "comments": {
+    "about": "Just thought to add some context, and also I'm just learning about it, didn't want to use turbo cos that can get quite complicated to setup",
+    "workspaces": "Uses npm workspaces (npm 7+) to manage frontend and cms as separate packages within single repo",
+    "concurrently": "Runs multiple npm scripts in parallel with colored output for development",
+    "rimraf": "Cross-platform alternative to 'rm -rf' - works on Windows/Unix/macOS and handles deep node_modules deletion safely",
+    "scripts": {
+      "dev": "Starts both frontend and cms in development mode simultaneously",
+      "clean": "Complete environment reset - removes all dependencies and reinstalls fresh",
+      "lint": "Runs ESLint across all workspaces that have lint scripts defined",
+      "build": "Sequential build of frontend then cms - stops on first failure"
+    }
+  }
+}
