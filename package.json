@@ -37,6 +37,11 @@
     "node": ">=16.0.0",
     "npm": ">=7.0.0"
   },
+
+  
+  "overrides": {
+    "framer-motion": "12.23.6"
+  },
   "comments": {
     "about": "Just thought to add some context, and also I'm just learning about it, didn't want to use turbo cos that can get quite complicated to setup",
     "workspaces": "Uses npm workspaces (npm 7+) to manage frontend and cms as separate packages within single repo",
@@ -47,6 +52,8 @@
       "clean": "Complete environment reset - removes all dependencies and reinstalls fresh",
       "lint": "Runs ESLint across all workspaces that have lint scripts defined",
       "build": "Sequential build of frontend then cms - stops on first failure"
-    }
+    },
+    "overrides" : "using overrides cos I had issues with dependencies, both sanity and framer motion use react and both were having issues locking on to react in the whole monorepo config, hence me using the override to tell each to get their shit togetber",
+    "motion": "I honestly don't know what they got going on, most of the stuff under the hood is still named framer-motion, I just think they being lazy with a great product"
   }
 }

@@ -1,6 +1,6 @@
 # Portfolio Documentation: The Real Gist 🚀
 
-## Ekaabo oo, Ori yii gun die, sugbon te eti re sile go gbo mhi!
+Ekaabo oo, Oro yii gun die, sugbon te eti re sile go gbo mhi!
 
 ## Table of Contents
 
@@ -330,7 +330,7 @@ The architecture fit look like overkill but trust me, it's for the best. When I 
 
 ---
 
-**Developer:** Omo, it's <OluwaBrimz/> on the Keyboard,
+**Developer:** Omo, it's Bolarinwa on the Keyboard,
 
 **Version:** 1.0.0 (definitely more avenues may pop up where uthman want to cook like mad)
 

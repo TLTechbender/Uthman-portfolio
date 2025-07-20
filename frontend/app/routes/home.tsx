@@ -1,5 +1,5 @@
+import HeroSection from "~/components/heroSection";
 import type { Route } from "./+types/home";
-import { Welcome } from "../welcome/welcome";
 
 export function meta({}: Route.MetaArgs) {
   return [
@@ -9,5 +9,10 @@ export function meta({}: Route.MetaArgs) {
 }
 
 export default function Home() {
-  return <Welcome />;
+  return <main>
+
+    <div id="#home">
+      <HeroSection/>
+    </div>
+  </main>;
 }
