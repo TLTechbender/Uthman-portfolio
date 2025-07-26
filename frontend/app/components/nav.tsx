@@ -5,8 +5,6 @@ import { BiMenu } from "react-icons/bi";
 import navVector from "../assets/images/nav-vector.svg";
 import testLogo from "../assets/images/test-logo.jpg";
 
-//todo: come refeactor the rest later bro, I don try small bro
-
 const Nav: React.FC = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [activeSection, setActiveSection] = useState<string>("");
@@ -14,6 +12,7 @@ const Nav: React.FC = () => {
   const [hoveredMobileItem, setHoveredMobileItem] = useState<string | null>(
     null
   );
+  const [isScrolled, setIsScrolled] = useState(false); // Add this state
 
   const navItems = [
     { name: "Home", href: "#home", badgeText: "H" },
@@ -24,11 +23,14 @@ const Nav: React.FC = () => {
   const toggleMenu = () => setIsMenuOpen(!isMenuOpen);
 
   useEffect(() => {
-    // Function to determine which section is currently active (ai assit here bro, too lazy cos I be reading for exams bro)
+    // Function to determine which section is currently active
     const updateActiveSection = () => {
-      const scrollPosition = window.scrollY + 100; // Offset for better UX
+      const scrollPosition = window.scrollY + 100;
 
-      // Check if we're at the very top (before any section)
+      // Update scroll state for navbar background
+      setIsScrolled(window.scrollY > 50);
+
+      // Check if we're at the very top
       if (window.scrollY < 100) {
         setActiveSection("");
         return;
@@ -37,7 +39,7 @@ const Nav: React.FC = () => {
       // Find all sections and determine which one is active
       const sections = navItems
         .map((item) => ({
-          id: item.href.substring(1), // Remove # from href
+          id: item.href.substring(1),
           element: document.getElementById(item.href.substring(1)),
         }))
         .filter((section) => section.element !== null);
@@ -61,12 +63,19 @@ const Nav: React.FC = () => {
     // Initial check
     updateActiveSection();
 
-    // Listen for scroll events
+    // Throttled scroll handler for better performance
+    let ticking = false;
     const handleScroll = () => {
-      requestAnimationFrame(updateActiveSection);
+      if (!ticking) {
+        requestAnimationFrame(() => {
+          updateActiveSection();
+          ticking = false;
+        });
+        ticking = true;
+      }
     };
 
-    // Listen for hash changes (when clicking nav links)
+    // Listen for hash changes
     const handleHashChange = () => {
       const hash = window.location.hash.substring(1);
       if (hash) {
@@ -81,20 +90,25 @@ const Nav: React.FC = () => {
       window.removeEventListener("scroll", handleScroll);
       window.removeEventListener("hashchange", handleHashChange);
     };
-  }, []);
+  }, [navItems]); // Add navItems as dependency
 
   const handleNavClick = (href: string) => {
-    const targetId = href.substring(1); // Remove #
+    const targetId = href.substring(1);
     const targetElement = document.getElementById(targetId);
 
     if (targetElement) {
-      // Smooth scroll to section
-      targetElement.scrollIntoView({
+      // Calculate offset for fixed navbar
+      const navbarHeight = 80; // Adjust based on your navbar height
+      const elementPosition = targetElement.getBoundingClientRect().top;
+      const offsetPosition =
+        elementPosition + window.pageYOffset - navbarHeight;
+
+      window.scrollTo({
+        top: offsetPosition,
         behavior: "smooth",
-        block: "start",
       });
 
-      // Update URL hash
+      // Update URL hash without jumping
       window.history.pushState(null, "", href);
       setActiveSection(targetId);
     }
@@ -107,7 +121,9 @@ const Nav: React.FC = () => {
 
   return (
     <nav
-      className="bg-transparent text-white relative"
+      className={`text-white relative border-b border-[#FEEDEC17] transition-all duration-300 ${
+        isScrolled ? " shadow-2xl backdrop-blur-3xl" : "bg-transparent"
+      }`}
       role="navigation"
       aria-label="Main navigation"
     >
@@ -116,35 +132,43 @@ const Nav: React.FC = () => {
           {/* Logo - Semantic Header */}
           <header className="flex-shrink-0">
             <h1 className="sr-only">Uthman's Portfolio</h1>
-            <a href="#home" aria-label="Go to homepage">
+            <button
+              onClick={() => handleNavClick("#home")}
+              aria-label="Go to homepage"
+              className="focus:outline-none focus:ring-2 focus:ring-teal-500 rounded-md"
+            >
               <picture className="w-fit h-fit">
                 <img
-                  className="object-contain max-w-[60px] max-h-[40px] h-full hover:scale-130 hover:cursor-none hover:rotate-45 transition-all duration-300"
+                  className="object-contain max-w-[60px] max-h-[40px] h-full hover:scale-110 hover:rotate-12 transition-all duration-300"
                   src={testLogo}
                   alt="Uthman's logo"
+                  onError={(e) => {
+                    console.warn("Logo failed to load:", e);
+                    // Fallback could be set here
+                  }}
                 />
               </picture>
-            </a>
+            </button>
           </header>
 
           {/* Desktop Navigation */}
           <div className="hidden lg:flex items-center justify-center flex-1">
             <ul className="flex items-center space-x-12" role="menubar">
               {navItems.map((item) => {
-                const sectionId = item.href.substring(1); // Remove # from href
+                const sectionId = item.href.substring(1);
                 const isActive = activeSection === sectionId;
-                const isHovered = hoveredItem === item.name; // Use item.name for consistency
+                const isHovered = hoveredItem === item.name;
 
                 return (
                   <li key={item.name} role="none">
                     <motion.button
-                      className="relative group cursor-pointer"
+                      className="relative group cursor-pointer focus:outline-none focus:ring-2 focus:ring-teal-500 rounded-md"
                       role="menuitem"
                       aria-current={isActive ? "page" : undefined}
                       whileHover={{ y: -2 }}
                       transition={{ duration: 0.2, ease: "easeOut" }}
                       onClick={() => handleNavClick(item.href)}
-                      onHoverStart={() => setHoveredItem(item.name)} // Use item.name
+                      onHoverStart={() => setHoveredItem(item.name)}
                       onHoverEnd={() => setHoveredItem(null)}
                     >
                       <div
@@ -177,6 +201,9 @@ const Nav: React.FC = () => {
                             src={navVector}
                             alt=""
                             aria-hidden="true"
+                            onError={(e) => {
+                              console.warn("Nav vector failed to load:", e);
+                            }}
                           />
                           <span
                             className={`
@@ -188,7 +215,6 @@ const Nav: React.FC = () => {
                           </span>
                         </span>
 
-                        {/* Nav Item Text */}
                         <span
                           className={`
                           font-medium text-base tracking-wide
@@ -199,7 +225,7 @@ const Nav: React.FC = () => {
                         </span>
                       </div>
 
-                      {/* Underline - positioned at the very bottom of the container */}
+                      {/* Underline */}
                       <motion.div
                         className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-teal-400 to-cyan-400 rounded-full"
                         initial={{ scaleX: 0, opacity: 0 }}
@@ -233,7 +259,7 @@ const Nav: React.FC = () => {
           {/* Contact Button - Desktop */}
           <div className="hidden lg:flex">
             <motion.button
-              className="relative cursor-pointer bg-teal-600/30 hover:bg-teal-500 px-6 py-3 rounded-[68px] text-sm font-semibold transition-all duration-300 shadow-lg hover:shadow-teal-500/25"
+              className="relative cursor-pointer bg-teal-600/30 hover:bg-teal-500 px-6 py-3 rounded-[68px] text-sm font-semibold transition-all duration-300 shadow-lg hover:shadow-teal-500/25 focus:outline-none focus:ring-2 focus:ring-teal-500"
               whileHover={{
                 scale: 1.05,
                 boxShadow: "0 10px 25px rgba(45, 212, 191, 0.15)",
@@ -241,6 +267,10 @@ const Nav: React.FC = () => {
               whileTap={{ scale: 0.98 }}
               transition={{ duration: 0.2 }}
               aria-label="Contact us"
+              onClick={() => {
+                // Add contact functionality here
+                console.log("Contact button clicked");
+              }}
             >
               <span className="relative z-10 text-white font-normal text-base leading-5 capitalize">
                 Contact Us
@@ -278,7 +308,7 @@ const Nav: React.FC = () => {
         </div>
       </div>
 
-      {/* Mobile Navigation Menu - Full Height (hoping this does not need any form of scrolling in the future otherwise my current setup might be cooked bro*/}
+      {/* Mobile Navigation Menu */}
       <AnimatePresence>
         {isMenuOpen && (
           <>
@@ -293,10 +323,10 @@ const Nav: React.FC = () => {
               aria-hidden="true"
             />
 
-            {/* Mobile Menu Panel - Full Height */}
+            {/* Mobile Menu Panel */}
             <motion.div
               id="mobile-menu"
-              className="fixed top-0 right-0 w-full h-full bg-gradient-to-br from-slate-900/98 to-slate-800/98 backdrop-blur-xl z-50 lg:hidden"
+              className="fixed top-0 right-0 w-full h-full bg-gradient-to-br from-slate-900/98 to-slate-800/98 backdrop-blur-xl z-50 lg:hidden overflow-y-auto"
               initial={{ opacity: 0, x: "100%" }}
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: "100%" }}
@@ -304,11 +334,11 @@ const Nav: React.FC = () => {
               role="menu"
               aria-label="Mobile navigation menu"
             >
-              {/* Close Button - Top Right */}
+              {/* Close Button */}
               <div className="absolute top-6 right-6 z-60">
                 <motion.button
                   onClick={toggleMenu}
-                  className="p-3 rounded-full text-gray-300 hover:text-white bg-slate-800/50 hover:bg-slate-700 border border-slate-600 hover:border-slate-500 transition-all duration-300"
+                  className="p-3 rounded-full text-gray-300 hover:text-white bg-slate-800/50 hover:bg-slate-700 border border-slate-600 hover:border-slate-500 transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-teal-500"
                   whileTap={{ scale: 0.95 }}
                   whileHover={{ scale: 1.05 }}
                   aria-label="Close navigation menu"
@@ -318,7 +348,7 @@ const Nav: React.FC = () => {
               </div>
 
               {/* Mobile Menu Content */}
-              <div className="flex flex-col justify-center items-center h-full px-8 pb-8">
+              <div className="flex flex-col justify-center items-center min-h-full px-8 py-20">
                 {/* Navigation Items */}
                 <div className="w-full max-w-md space-y-6">
                   {navItems.map((item, index) => {
@@ -343,6 +373,7 @@ const Nav: React.FC = () => {
                           className={`
                             w-full flex items-center justify-between px-6 py-5 rounded-2xl cursor-pointer
                             transition-all duration-300 border-2 group relative overflow-hidden
+                            focus:outline-none focus:ring-2 focus:ring-teal-500
                             ${
                               isActive
                                 ? "text-white bg-gradient-to-r from-teal-600/30 to-cyan-600/30 border-teal-500/70 shadow-xl shadow-teal-500/20"
@@ -361,7 +392,6 @@ const Nav: React.FC = () => {
                         >
                           {/* Left side - Badge and Text */}
                           <div className="flex items-center space-x-5">
-                            {/* Enhanced Badge with Vector - MADE MORE VISIBLE */}
                             <motion.div
                               className={`
                                 text-sm bg-[#042428] flex gap-2 items-center px-4 py-3 
@@ -388,6 +418,9 @@ const Nav: React.FC = () => {
                                 src={navVector}
                                 alt=""
                                 aria-hidden="true"
+                                onError={(e) => {
+                                  console.warn("Nav vector failed to load:", e);
+                                }}
                               />
                               <span
                                 className={`
@@ -405,7 +438,6 @@ const Nav: React.FC = () => {
                               </span>
                             </motion.div>
 
-                            {/* Nav Item Text */}
                             <span
                               className={`font-semibold text-xl transition-colors duration-300 ${
                                 isActive
@@ -444,7 +476,7 @@ const Nav: React.FC = () => {
                             transition={{
                               duration: 2,
                               repeat: isActive ? Infinity : 0,
-                              repeatType: "reverse",
+                              repeatType: "reverse" as const,
                             }}
                           />
 
@@ -475,8 +507,12 @@ const Nav: React.FC = () => {
                   }}
                 >
                   <motion.button
-                    className="w-full bg-gradient-to-r from-teal-600 to-cyan-600 hover:from-teal-500 hover:to-cyan-500 px-8 py-5 rounded-2xl font-semibold text-lg transition-all duration-300 shadow-xl shadow-teal-600/30 hover:shadow-teal-500/50 border border-teal-500/40 hover:border-teal-400/60"
-                    onClick={toggleMenu}
+                    className="w-full bg-gradient-to-r from-teal-600 to-cyan-600 hover:from-teal-500 hover:to-cyan-500 px-8 py-5 rounded-2xl font-semibold text-lg transition-all duration-300 shadow-xl shadow-teal-600/30 hover:shadow-teal-500/50 border border-teal-500/40 hover:border-teal-400/60 focus:outline-none focus:ring-2 focus:ring-teal-500"
+                    onClick={() => {
+                      toggleMenu();
+                      // Add contact functionality here
+                      console.log("Mobile contact button clicked");
+                    }}
                     whileTap={{ scale: 0.98 }}
                     whileHover={{ scale: 1.02 }}
                     aria-label="Contact us"

@@ -27,12 +27,12 @@ const BouncingLogosHeroSection = () => {
   const animationRef = useRef<number>(0);
   const containerDimensionsRef = useRef({ width: 0, height: 0 });
 
-  const isInView = useInView(containerRef);
+
   const logoImages = [figmaLogo, toolTip, greenBolt, starLight, iceLogo];
 
   // Initialize logos with direct DOM elements
   useEffect(() => {
-    if (!isInView || !containerRef.current) return;
+    if ( !containerRef.current) return;
 
     const container = containerRef.current;
     const rect = container.getBoundingClientRect();
@@ -103,7 +103,7 @@ const BouncingLogosHeroSection = () => {
       }
       logosRef.current = [];
     };
-  }, [isInView, logoImages]);
+  }, [ logoImages]);
 
   // Handle container resize
   useEffect(() => {
@@ -201,15 +201,7 @@ const BouncingLogosHeroSection = () => {
     }
   };
 
-  // Stop animation when component goes out of view
-  useEffect(() => {
-    if (!isInView) {
-      stopAnimation();
-    } else if (logosRef.current.length > 0 && animationRef.current === 0) {
-      startAnimation();
-    }
-  }, [isInView]);
-
+ 
 
   //another ai assist here bro, I was using react state before, that was so chaotic at 60fps but now it's better
   return (

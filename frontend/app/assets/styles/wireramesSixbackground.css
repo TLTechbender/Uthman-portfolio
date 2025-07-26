@@ -1,0 +1,12 @@
+  @keyframes pulse-glow {
+            0%, 100% {
+              opacity: 0.4;
+            }
+            50% {
+              opacity: 0.8;
+            }
+          }
+          
+          .glow-animation {
+            animation: pulse-glow 4s ease-in-out infinite;
+          }
