@@ -1,5 +1,5 @@
 import { motion, type Variants } from "framer-motion";
-import dummyPassport from "../assets/images/dummy-passport.jpeg";
+
 import NoiseOverlay from "./effects/noiseOverlay";
 import BouncingLogosHeroSection from "./effects/bouncingLogosHeroSection";
 import AnimatedGradientsHeroSection from "./effects/animatedGradientHeroSection";
@@ -155,8 +155,9 @@ const HeroSection: React.FC<HeroSectionProps> = ({ hero }) => {
         <AnimatedGradientsHeroSection />
       </motion.div>
 
+      {/* Floating background image - hide on very small screens */}
       <motion.picture
-        className="absolute top-0 w-full h-full flex justify-center items-start"
+        className="absolute top-0 w-full h-full hidden sm:flex justify-center items-start"
         variants={floatingAnimation}
         initial="hidden"
         animate="visible"
@@ -164,18 +165,19 @@ const HeroSection: React.FC<HeroSectionProps> = ({ hero }) => {
         <img
           src={OponIfa}
           alt="Effect Image"
-          className="max-w-[202px] max-h-[195px] w-auto h-auto object-contain opacity-20"
+          className="max-w-[150px] sm:max-w-[180px] md:max-w-[202px] max-h-[145px] sm:max-h-[170px] md:max-h-[195px] w-auto h-auto object-contain opacity-20"
         />
       </motion.picture>
 
-      <div>
+      <div className="px-4 sm:px-6 lg:px-8">
         <motion.div
-          className="max-w-4xl mt-18 md:mt-24 lg:mt-28 w-full mx-auto relative "
+          className="max-w-4xl mt-18 md:mt-24 lg:mt-28 w-full mx-auto relative"
           variants={initialStaggerContainer}
           initial="hidden"
           animate="visible"
         >
-          <div className="text-center space-y-8 sm:space-y-12">
+          <div className="text-center space-y-6 sm:space-y-8 lg:space-y-12">
+            {/* Profile Image */}
             <motion.div
               className="flex justify-center"
               variants={initialFadeInScale}
@@ -185,7 +187,7 @@ const HeroSection: React.FC<HeroSectionProps> = ({ hero }) => {
                 whileHover={{ scale: 1.05 }}
                 transition={{ duration: 0.3 }}
               >
-                <div className="w-32 h-32 sm:w-40 sm:h-40 lg:w-48 lg:h-48 rounded-full overflow-hidden border-4 border-white/20 shadow-2xl relative">
+                <div className="w-24 h-24 xs:w-28 xs:h-28 sm:w-32 sm:h-32 md:w-40 md:h-40 lg:w-48 lg:h-48 rounded-full overflow-hidden border-2 sm:border-4 border-white/20 shadow-2xl relative">
                   <motion.div
                     className="absolute inset-0 bg-gradient-to-tr from-teal-500/20 to-emerald-500/20 rounded-full z-0"
                     animate={{ rotate: 360 }}
@@ -203,7 +205,7 @@ const HeroSection: React.FC<HeroSectionProps> = ({ hero }) => {
                       .quality(100)
                       .url()}
                     alt="UX Designer Profile"
-                    className="w-full h-full object-cover grayscale hover:grayscale-0 hover:cursor-none hover:scale-110 transition-all duration-700 relative z-10 "
+                    className="w-full h-full object-cover grayscale hover:grayscale-0 hover:cursor-none hover:scale-110 transition-all duration-700 relative z-10"
                   />
                 </div>
 
@@ -215,23 +217,37 @@ const HeroSection: React.FC<HeroSectionProps> = ({ hero }) => {
               </motion.div>
             </motion.div>
 
+            {/* Main Heading with Typewriter */}
             <motion.div
-              className="space-y-4 sm:space-y-6"
+              className="space-y-3 sm:space-y-4 lg:space-y-6"
               variants={initialFadeInUp}
             >
-              <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold leading-tight">
+              <h1 className="text-2xl xs:text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold leading-tight px-2 sm:px-0">
                 {hero.beforeTypewriterText}{" "}
                 <span className="relative inline-block">
-                  {/* Fixed height container to prevent jumping */}
+                  {/* Dynamic width calculation based on longest phrase */}
                   <span
-                    className="inline-block min-w-[280px]  text-left"
+                    className="inline-block text-left relative"
                     style={{
-                      minHeight: "1.2em", // Ensures consistent height
-                      verticalAlign: "top", // Prevents baseline shifts
+                      minWidth: `${Math.max(...phrases.map((phrase) => phrase.length)) * 0.5}ch`, // Dynamic width based on longest phrase
+                      minHeight: "1.2em",
+                      verticalAlign: "top",
                     }}
                   >
+                    {/* Hidden text for width calculation - all phrases rendered invisibly */}
+                    <span
+                      className="absolute top-0 left-0 invisible pointer-events-none select-none"
+                      aria-hidden="true"
+                    >
+                      {phrases.reduce(
+                        (longest, current) =>
+                          current.length > longest.length ? current : longest,
+                        ""
+                      )}
+                    </span>
+
                     <motion.span
-                      className="text-transparent bg-clip-text bg-gradient-to-r from-teal-400 to-emerald-400"
+                      className="text-transparent bg-clip-text bg-gradient-to-r from-teal-400 to-emerald-400 relative z-10"
                       animate={{
                         backgroundPosition: ["0% 50%", "100% 50%", "0% 50%"],
                       }}
@@ -241,8 +257,11 @@ const HeroSection: React.FC<HeroSectionProps> = ({ hero }) => {
                       <span ref={typewriterRef}>ui designer</span>
                       <span
                         ref={cursorRef}
-                        className="inline-flex w-0.5 h-16 sm:h-10 lg:h-18 bg-teal-400 ml-1"
-                        style={{ opacity: 1 }}
+                        className="inline-flex w-0.5 bg-teal-400 ml-1"
+                        style={{
+                          opacity: 1,
+                          height: "1em", // Use em units to scale with font size
+                        }}
                       >
                         |
                       </span>
@@ -255,24 +274,25 @@ const HeroSection: React.FC<HeroSectionProps> = ({ hero }) => {
 
             {/* Description */}
             <motion.div
-              className="max-w-4xl mx-auto"
+              className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-0"
               variants={initialFadeInUp}
             >
-              <p className="text-white text-lg leading-relaxed px-4">
+              <p className="text-white text-base sm:text-lg leading-relaxed">
                 {hero.subHeading}
               </p>
             </motion.div>
 
             {/* Action Buttons */}
             <motion.div
-              className="flex flex-col sm:flex-row gap-4 sm:gap-6 justify-center items-center pt-4 sm:pt-8"
+              className="flex flex-col sm:flex-row gap-3 sm:gap-4 lg:gap-6 justify-center items-center pt-4 sm:pt-6 lg:pt-8 px-4 sm:px-0"
               variants={initialFadeInUp}
             >
+              {/* Primary CTA Button */}
               <motion.a
                 style={{
                   boxShadow: "2px 2px 0px 0px #032A22",
                 }}
-                className="relative cursor-pointer bg-[#0FB492] hover:bg-teal-500 px-8 py-4 rounded-xl text-black hover:text-white text-base font-semibold transition-all duration-300 shadow-lg hover:shadow-teal-500/25 focus:outline-none focus:ring-2 focus:ring-teal-500"
+                className="relative cursor-pointer bg-[#0FB492] hover:bg-teal-500 px-6 sm:px-8 py-4 rounded-xl text-black hover:text-white text-sm sm:text-base font-semibold transition-all duration-300 shadow-lg hover:shadow-teal-500/25 focus:outline-none focus:ring-2 focus:ring-teal-500 w-48 sm:w-fit h-12 sm:h-auto flex items-center justify-center"
                 variants={buttonHover}
                 initial="rest"
                 whileHover="hover"
@@ -280,7 +300,7 @@ const HeroSection: React.FC<HeroSectionProps> = ({ hero }) => {
                 href={hero.hireLink?.url}
               >
                 <motion.div
-                  className="absolute inset-0 bg-gradient-to-r "
+                  className="absolute inset-0 bg-gradient-to-r"
                   initial={{ x: "-100%" }}
                   whileHover={{ x: "0%" }}
                   transition={{ duration: 0.3 }}
@@ -295,8 +315,9 @@ const HeroSection: React.FC<HeroSectionProps> = ({ hero }) => {
                 />
               </motion.a>
 
+              {/* Secondary CTA Button */}
               <motion.a
-                className="group px-8 py-4 border-2 border-[#F2F2F299] text-white font-semibold rounded-xl hover:border-[#0FB492] hover:text-[#0FB492] hover:bg-teal-400/5 relative overflow-hidden w-full sm:w-auto cursor-pointer"
+                className="group px-6 sm:px-8 py-4 border-2 border-[#F2F2F299] text-white font-semibold rounded-xl hover:border-[#0FB492] hover:text-[#0FB492] hover:bg-teal-400/5 relative overflow-hidden w-48 sm:w-fit h-12 sm:h-auto cursor-pointer text-sm sm:text-base flex items-center justify-center"
                 variants={buttonHover}
                 initial="rest"
                 whileHover="hover"

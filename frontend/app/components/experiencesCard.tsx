@@ -146,7 +146,7 @@ const ExperienceCard: React.FC<ExperienceCardProps> = ({
 
         <div className="relative flex flex-col gap-2.5 md:gap-3 ">
           {/* Header */}
-          <div className=" flex flex-col gap-4 md:justify-between md:flex-row md:gap-0 items-center">
+          <div className="flex flex-col gap-4 justify-start md:justify-between md:flex-row md:gap-0 items-start">
             <span className="flex items-center gap-2">
               <motion.picture
                 className="text-xl  opacity-70"

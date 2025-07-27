@@ -88,7 +88,7 @@ const TestimoniesSwiper: React.FC<{ testimonies: Testimonial[] }> = ({
             clickable: true,
           }}
           modules={[Mousewheel, Pagination]}
-          className="h-[350px] w-full"
+          className="h-[280px] w-full"
           style={
             {
               "--swiper-pagination-color": "#fbbf24",
@@ -110,7 +110,7 @@ const TestimoniesSwiper: React.FC<{ testimonies: Testimonial[] }> = ({
           effect="cards"
           grabCursor={true}
           modules={[EffectCards]}
-          className="w-full max-w-xs mx-auto h-[320px]"
+          className="w-full max-w-xs mx-auto h-[280px]"
           cardsEffect={{
             rotate: true,
             perSlideRotate: 4,
@@ -140,7 +140,7 @@ const TestimoniesSection: React.FC<TestimoniesProps> = ({
   }
 
   return (
-    <div className="relative py-12 overflow-hidden">
+    <div className="relative py-8 overflow-hidden">
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}

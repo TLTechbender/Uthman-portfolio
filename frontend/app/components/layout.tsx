@@ -48,7 +48,7 @@ const Layout: React.FC<Route.ComponentProps> = ({ loaderData }) => {
   const { siteSettings } = loaderData;
 
   return (
-    <div className="flex flex-col min-h-screen bg-[#04070D] mb-12">
+    <div className="flex flex-col min-h-screen bg-[#04070D] pb-2.5 ">
       <div className="fixed top-0 w-full z-99">
         <Nav navbar={siteSettings.navbar} />
       </div>

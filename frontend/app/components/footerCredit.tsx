@@ -101,8 +101,6 @@ const FooterCredit = () => {
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.6, ease: "easeOut" }}
     >
-    
-
       <div className="relative max-w-3xl mx-auto px-4 text-center">
         {/* Main content */}
         <motion.div
@@ -111,6 +109,14 @@ const FooterCredit = () => {
           animate={{ opacity: 1 }}
           transition={{ delay: 0.3 }}
         >
+          <motion.p
+            className="text-xl text-gray-500 mb-6 font-mono"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 1.2 }}
+          >
+            Thank you for visiting My small side of the internet 🙏
+          </motion.p>
           {/* Single line with built with text, tech badges, and creator */}
           <motion.div
             className="flex flex-wrap items-center justify-center gap-3 text-gray-300"
@@ -345,19 +351,7 @@ const FooterCredit = () => {
               </div>
             </motion.a>
           </motion.div>
-
-          {/* Thank you message */}
-          <motion.p
-            className="text-xs text-gray-500 mt-2 font-mono"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 1.2 }}
-          >
-            Thank you for visiting Uthman's side of the internet 🙏
-          </motion.p>
         </motion.div>
-           
-       
       </div>
     </motion.footer>
   );

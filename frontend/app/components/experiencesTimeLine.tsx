@@ -18,17 +18,6 @@ const ExperiencesTimeline: React.FC<ExperiencesTimelineProps> = ({
     offset: ["start end", "end start"],
   });
 
-  const staggerContainer = {
-    hidden: { opacity: 0 },
-    show: {
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.2,
-        delayChildren: 0.1,
-      },
-    },
-  };
-
   return (
     <div className="relative">
       <motion.div
@@ -39,50 +28,56 @@ const ExperiencesTimeline: React.FC<ExperiencesTimelineProps> = ({
         <AnimatedGradientExperiencesSection />
       </motion.div>
 
-      <div className="w-full p-8" ref={containerRef}>
+      <div className="w-full p-4 sm:p-6 lg:p-8" ref={containerRef}>
         <div className="max-w-4xl mx-auto">
+          {/* Section Header - Mobile responsive */}
           <motion.div
-            className="mb-16 relative " // Added z-10 for proper stacking
+            className="mb-8 sm:mb-12 lg:mb-16 relative"
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, ease: "easeOut" }}
           >
-            <h1 className="text-4xl font-bold text-white mb-2 text-center">
-              {" "}
+            <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-white mb-2 text-center">
               Experience
             </h1>
-            <p className="text-white/70 text-lg mb-4 text-center">
-              {" "}
+            <p className="text-white/70 text-sm sm:text-base lg:text-lg mb-4 text-center px-4">
               Experiences that prove my expertise
             </p>
           </motion.div>
 
-          <div className="relative pl-12">
+          {/* Timeline Container - Responsive spacing */}
+          <div className="relative pl-8 sm:pl-12">
+            {/* Animated Timeline Line - Responsive positioning */}
             <motion.div
-              className="absolute left-6 w-0.5 bg-[#0FB492] origin-top"
+              className="absolute left-4 sm:left-6 w-0.5 bg-[#0FB492] origin-top"
               style={{
-                top: "1.5rem",
-                height: `calc(100% - 3rem)`,
+                top: "1rem",
+                height: `calc(100% - 2rem)`,
                 scaleY: scrollYProgress,
               }}
             />
 
-            <motion.div
-              className="space-y-12"
-              variants={staggerContainer}
-              initial="hidden"
-              whileInView="show"
-              viewport={{ once: true, amount: 0.1 }}
-            >
+            {/* Timeline Dots Container - Responsive */}
+            <div className="absolute left-4 sm:left-6 top-0 w-0.5 h-full">
+              {experiences.map((_, index) => (
+                <div
+                  key={index}
+                  className="absolute w-3 h-3 sm:w-4 sm:h-4 bg-white rounded-full border-2 sm:border-4 border-[#0FB492] transform -translate-x-1/2"
+                  style={{
+                    top: `${(index / Math.max(experiences.length - 1, 1)) * 100}%`,
+                  }}
+                />
+              ))}
+            </div>
+
+            {/* Experience Cards */}
+            <div className="space-y-6 sm:space-y-8 lg:space-y-12">
               {experiences.map((exp, index) => (
                 <div key={index} className="relative">
-                  {/* Timeline dot */}
-                  <div className="absolute -left-6 top-6 w-4 h-4 bg-white rounded-full border-4 border-[#0FB492] transform -translate-x-1/2" />
-
                   <ExperienceCard {...exp} index={index} />
                 </div>
               ))}
-            </motion.div>
+            </div>
           </div>
         </div>
       </div>

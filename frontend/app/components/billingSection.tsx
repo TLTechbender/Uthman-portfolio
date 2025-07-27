@@ -38,10 +38,10 @@ const BillingSection = () => {
         </div>
 
         {/* Contact Form Section */}
-        <div className="relative z-20 py-16 px-4">
-          <div className="container mx-auto max-w-4xl">
+        <div className="relative z-20 ">
+          
             <ContactForm />
-          </div>
+          
         </div>
       </div>
     </div>
