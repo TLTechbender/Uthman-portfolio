@@ -41,7 +41,7 @@ const Nav: React.FC<NavProps> = ({ navbar }) => {
   }, []);
 
   const navItems = [
-    { name: "Home", href: "/home", badgeText: "H" },
+    { name: "Home", href: "/", badgeText: "H" },
     { name: "About Us", href: "/about", badgeText: "A" },
     { name: "Portfolio", href: "/portfolio", badgeText: "P" },
   ];
