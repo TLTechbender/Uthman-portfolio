@@ -5,8 +5,8 @@ import { BiMenu } from "react-icons/bi";
 import { useLocation, useNavigate } from "react-router";
 import navVector from "../assets/images/nav-vector.svg";
 import testLogo from "../assets/images/test-logo.jpg";
-import type { Navbar } from "sanity/interfaces/siteSettings";
-import { urlFor } from "sanity/sanityClient";
+import type { Navbar } from "~/sanity/interfaces/siteSettings";
+import { urlFor } from "~/sanity/sanityClient";
 
 interface NavProps {
   navbar: Navbar;
@@ -222,7 +222,6 @@ const Nav: React.FC<NavProps> = ({ navbar }) => {
             </ul>
           </div>
 
-    
           <div className="hidden lg:flex">
             <motion.a
               className="relative cursor-pointer bg-teal-600/30 hover:bg-teal-500 px-6 py-3 rounded-[68px] text-sm font-semibold transition-all duration-300 shadow-lg hover:shadow-teal-500/25 focus:outline-none focus:ring-2 focus:ring-teal-500"

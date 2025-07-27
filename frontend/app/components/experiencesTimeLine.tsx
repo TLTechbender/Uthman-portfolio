@@ -2,14 +2,16 @@ import { useScroll, motion } from "framer-motion";
 import { useRef } from "react";
 import AnimatedGradientExperiencesSection from "./effects/animatedGradientExperiencesSection";
 import ExperienceCard from "./experiencesCard";
-import type { Experience } from "sanity/interfaces/homepage";
+import type { Experience } from "~/sanity/interfaces/homepage";
 
 interface ExperiencesTimelineProps {
-  experiences: Experience[]
+  experiences: Experience[];
 }
 
-const ExperiencesTimeline: React.FC<ExperiencesTimelineProps> = ({ experiences }) => {
-  console.log(experiences)
+const ExperiencesTimeline: React.FC<ExperiencesTimelineProps> = ({
+  experiences,
+}) => {
+  console.log(experiences);
   const containerRef = useRef(null);
   const { scrollYProgress } = useScroll({
     target: containerRef,
@@ -26,8 +28,6 @@ const ExperiencesTimeline: React.FC<ExperiencesTimelineProps> = ({ experiences }
       },
     },
   };
-
-  
 
   return (
     <div className="relative">
@@ -49,15 +49,12 @@ const ExperiencesTimeline: React.FC<ExperiencesTimelineProps> = ({ experiences }
           >
             <h1 className="text-4xl font-bold text-white mb-2 text-center">
               {" "}
-         
               Experience
             </h1>
             <p className="text-white/70 text-lg mb-4 text-center">
               {" "}
-            
               Experiences that prove my expertise
             </p>
-          
           </motion.div>
 
           <div className="relative pl-12">
@@ -82,11 +79,9 @@ const ExperiencesTimeline: React.FC<ExperiencesTimelineProps> = ({ experiences }
                   {/* Timeline dot */}
                   <div className="absolute -left-6 top-6 w-4 h-4 bg-white rounded-full border-4 border-[#0FB492] transform -translate-x-1/2" />
 
-            
                   <ExperienceCard {...exp} index={index} />
                 </div>
               ))}
-              
             </motion.div>
           </div>
         </div>

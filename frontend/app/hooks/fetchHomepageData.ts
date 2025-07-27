@@ -1,8 +1,8 @@
-import type { HomepageContentData } from "sanity/interfaces/homepage";
+import type { HomepageContentData } from "~/sanity/interfaces/homepage";
 
-import { homepageContentQuery } from "sanity/queries/homePage";
+import { homepageContentQuery } from "~/sanity/queries/homePage";
 
-import { sanityFetchWrapper } from "sanity/sanityCRUDHandlers";
+import { sanityFetchWrapper } from "~/sanity/sanityCRUDHandlers";
 
 export const fetchHomepageContentData = async () => {
   const response =

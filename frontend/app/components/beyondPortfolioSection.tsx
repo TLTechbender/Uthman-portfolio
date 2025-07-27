@@ -2,10 +2,10 @@ import React, { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence, type Variants } from "framer-motion";
 import { createPortal } from "react-dom";
 import { PortableText } from "@portabletext/react";
-import '../assets/styles/beyondPortfolio.css';
-import type { BeyondPortfolio } from "sanity/interfaces/homepage";
+import "../assets/styles/beyondPortfolio.css";
+import type { BeyondPortfolio } from "~/sanity/interfaces/homepage";
 import funnyStars from "../assets/images/funny-star-logo.svg";
-import { urlFor } from "sanity/sanityClient";
+import { urlFor } from "~/sanity/sanityClient";
 
 // ================== INTERFACES ==================
 interface PopupData {

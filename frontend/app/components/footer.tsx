@@ -1,12 +1,15 @@
 import FooterCredit from "./footerCredit";
 import snake from "../assets/images/snake.svg";
 import BouncingFooterShapes from "./effects/bouncingFooterShapes";
-import type {  FooterData, SocialPlatform } from "sanity/interfaces/siteSettings";
+import type {
+  FooterData,
+  SocialPlatform,
+} from "~/sanity/interfaces/siteSettings";
 
 // Define the types based on your layout.tsx interfaces
 
 interface FooterProps {
- footerData: FooterData
+  footerData: FooterData;
 }
 
 const Footer: React.FC<FooterProps> = ({ footerData }) => {

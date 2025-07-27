@@ -9,9 +9,9 @@ import BillingSection from "~/components/billingSection";
 import type {
   HomepageContentData,
   HomepageSeoData,
-} from "sanity/interfaces/homepage";
-import { sanityFetchWrapper } from "sanity/sanityCRUDHandlers";
-import { homepageSeoQuery } from "sanity/queries/homePage";
+} from "~/sanity/interfaces/homepage";
+import { sanityFetchWrapper } from "~/sanity/sanityCRUDHandlers";
+import { homepageSeoQuery } from "~/sanity/queries/homePage";
 import { fetchHomepageContentData } from "~/hooks/fetchHomepageData";
 import { useLoaderData } from "react-router";
 
@@ -28,8 +28,6 @@ export async function loader(): Promise<{
       fetchHomepageContentData(),
       sanityFetchWrapper<HomepageSeoData>(homepageSeoQuery),
     ]);
-
-   
 
     return { homePageContentData, seoData };
   } catch (error) {
@@ -149,19 +147,23 @@ export default function Home() {
   return (
     <main className="flex flex-col">
       <>
-        <HeroSection hero={ homePageContentData.hero} />
+        <HeroSection hero={homePageContentData.hero} />
       </>
       <>
         <ProjectsSection />
       </>
       <>
-        <ExperienceTimeline experiences = {homePageContentData.experiences} />
+        <ExperienceTimeline experiences={homePageContentData.experiences} />
       </>
       <>
-        <BeyondPortfolioSection beyondPortfolioData = {homePageContentData.beyondPortfolio} />
+        <BeyondPortfolioSection
+          beyondPortfolioData={homePageContentData.beyondPortfolio}
+        />
       </>
       <>
-        <TestimoniesSection testimoninesData = {homePageContentData.testimonials} />
+        <TestimoniesSection
+          testimoninesData={homePageContentData.testimonials}
+        />
       </>
       <>
         <BillingSection />

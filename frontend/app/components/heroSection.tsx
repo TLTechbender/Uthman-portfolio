@@ -6,8 +6,8 @@ import AnimatedGradientsHeroSection from "./effects/animatedGradientHeroSection"
 import OponIfa from "../assets/images/opon-ifa.svg";
 
 import { useRef, useEffect } from "react";
-import type { Hero } from "sanity/interfaces/homepage";
-import { urlFor } from "sanity/sanityClient";
+import type { Hero } from "~/sanity/interfaces/homepage";
+import { urlFor } from "~/sanity/sanityClient";
 
 interface HeroSectionProps {
   hero: Hero;
@@ -285,7 +285,7 @@ const HeroSection: React.FC<HeroSectionProps> = ({ hero }) => {
                   whileHover={{ x: "0%" }}
                   transition={{ duration: 0.3 }}
                 />
-                <span className="relative z-10">{ hero.hireLink?.text}</span>
+                <span className="relative z-10">{hero.hireLink?.text}</span>
                 <motion.div
                   className="absolute inset-0 bg-white/20"
                   initial={{ scale: 0, opacity: 0 }}

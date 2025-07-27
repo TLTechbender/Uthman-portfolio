@@ -8,8 +8,8 @@ import {
   type Variants,
   MotionValue,
 } from "framer-motion";
-import type { Experience } from "sanity/interfaces/homepage";
-import { urlFor } from "sanity/sanityClient";
+import type { Experience } from "~/sanity/interfaces/homepage";
+import { urlFor } from "~/sanity/sanityClient";
 
 interface ExperienceCardProps extends Experience {
   index: number;
@@ -22,8 +22,7 @@ const ExperienceCard: React.FC<ExperienceCardProps> = ({
   duration,
   index,
 }) => {
-
-    console.log(organisationLogo.asset);
+  console.log(organisationLogo.asset);
   const cardRef = useRef<HTMLDivElement>(null);
   const [isHovered, setIsHovered] = useState<boolean>(false);
 
@@ -154,8 +153,8 @@ const ExperienceCard: React.FC<ExperienceCardProps> = ({
                 whileHover={{ scale: 1.1, opacity: 1 }}
                 transition={{ duration: 0.2 }}
               >
-                              <img
-                                  className="rounded-full w-6 h-6"
+                <img
+                  className="rounded-full w-6 h-6"
                   src={urlFor(organisationLogo.asset._id)
                     .width(48)
                     .height(48)

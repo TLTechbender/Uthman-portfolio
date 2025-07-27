@@ -9,7 +9,7 @@ import "swiper/css/pagination";
 import "swiper/css/effect-cards";
 import WireframeSixBackground from "./effects/wireframeSixBackground";
 import WireframeSixGreenShapesBackground from "./effects/wireframeSixGreenShapesBackground";
-import type { Testimonial } from "sanity/interfaces/homepage";
+import type { Testimonial } from "~/sanity/interfaces/homepage";
 
 interface TestimoniesProps {
   testimoninesData?: Testimonial[];
@@ -132,7 +132,6 @@ const TestimoniesSwiper: React.FC<{ testimonies: Testimonial[] }> = ({
 const TestimoniesSection: React.FC<TestimoniesProps> = ({
   testimoninesData,
 }) => {
- 
   const testimonies = testimoninesData;
 
   // Don't render if no testimonies available

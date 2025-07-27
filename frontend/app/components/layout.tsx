@@ -4,11 +4,10 @@ import { Outlet } from "react-router";
 import Nav from "./nav";
 import { motion } from "framer-motion";
 import type { Route } from "./+types/layout";
-import type { SiteSettings } from "sanity/interfaces/siteSettings";
+import type { SiteSettings } from "~/sanity/interfaces/siteSettings";
 import { fetchSiteSettings } from "~/hooks/fetchSiteSettings";
-import { urlFor } from "sanity/sanityClient";
+import { urlFor } from "~/sanity/sanityClient";
 import Footer from "./footer";
-
 
 export async function loader(): Promise<{ siteSettings: SiteSettings }> {
   console.log("🔍 Loader running...");
@@ -25,7 +24,7 @@ export function meta({ data }: Route.MetaArgs) {
   const faviconUrl = urlFor(data.siteSettings.navbar.logo.asset._id)
     .width(48)
     .height(48)
-    .format("png") 
+    .format("png")
     .url();
 
   return [
