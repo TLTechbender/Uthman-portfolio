@@ -1,0 +1,29 @@
+export const siteSettingsQuery = `*[_type == "siteSettings"][0]{
+  _id,
+  _type,
+  navbar{
+    logo{
+      asset->{
+        _id,
+        url,
+        metadata{
+          dimensions{
+            width,
+            height
+          }
+        }
+      },
+      alt,
+      hotspot,
+      crop
+    },
+      contact
+  },
+  footer{
+    socialLinks[]{
+      platform,
+      url,
+      isEnabled
+    }
+  }
+}`;

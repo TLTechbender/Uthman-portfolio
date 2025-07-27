@@ -6,8 +6,14 @@ import AnimatedGradientsHeroSection from "./effects/animatedGradientHeroSection"
 import OponIfa from "../assets/images/opon-ifa.svg";
 
 import { useRef, useEffect } from "react";
+import type { Hero } from "sanity/interfaces/homepage";
+import { urlFor } from "sanity/sanityClient";
 
-const HeroSection: React.FC = () => {
+interface HeroSectionProps {
+  hero: Hero;
+}
+
+const HeroSection: React.FC<HeroSectionProps> = ({ hero }) => {
   const initialFadeInUp: Variants = {
     hidden: {
       opacity: 0,
@@ -67,7 +73,8 @@ const HeroSection: React.FC = () => {
     },
   };
 
-  const phrases = ["ui designer", "programmer", "sleeper"];
+  console.log(hero.typewriterWords);
+  const phrases = hero.typewriterWords;
   const typewriterRef = useRef<HTMLSpanElement>(null);
   const cursorRef = useRef<HTMLSpanElement>(null);
   const currentPhraseIndex = useRef(0);
@@ -104,6 +111,7 @@ const HeroSection: React.FC = () => {
           if (typewriterRef.current) {
             typewriterRef.current.textContent = currentText.current;
           }
+          // Smoother writing - reduced from 300ms to 120ms
           setTimeout(startTypewriter, 120);
         } else {
           setTimeout(() => {
@@ -117,12 +125,13 @@ const HeroSection: React.FC = () => {
           if (typewriterRef.current) {
             typewriterRef.current.textContent = currentText.current;
           }
-          setTimeout(startTypewriter, 80);
+          // Faster deletion - reduced from 180ms to 50ms
+          setTimeout(startTypewriter, 50);
         } else {
           isDeleting.current = false;
           currentPhraseIndex.current =
             (currentPhraseIndex.current + 1) % phrases.length;
-          setTimeout(startTypewriter, 200);
+          setTimeout(startTypewriter, 300);
         }
       }
     }
@@ -161,7 +170,7 @@ const HeroSection: React.FC = () => {
 
       <div>
         <motion.div
-          className="max-w-4xl mt-32 w-full mx-auto relative "
+          className="max-w-4xl mt-18 md:mt-24 lg:mt-28 w-full mx-auto relative "
           variants={initialStaggerContainer}
           initial="hidden"
           animate="visible"
@@ -178,7 +187,7 @@ const HeroSection: React.FC = () => {
               >
                 <div className="w-32 h-32 sm:w-40 sm:h-40 lg:w-48 lg:h-48 rounded-full overflow-hidden border-4 border-white/20 shadow-2xl relative">
                   <motion.div
-                    className="absolute inset-0 bg-gradient-to-tr from-teal-500/20 to-emerald-500/20 rounded-full"
+                    className="absolute inset-0 bg-gradient-to-tr from-teal-500/20 to-emerald-500/20 rounded-full z-0"
                     animate={{ rotate: 360 }}
                     transition={{
                       duration: 20,
@@ -187,9 +196,14 @@ const HeroSection: React.FC = () => {
                     }}
                   />
                   <img
-                    src={dummyPassport}
+                    src={urlFor(hero.centerPieceImage.asset._id)
+                      .width(96)
+                      .height(96)
+                      .format("jpg")
+                      .quality(100)
+                      .url()}
                     alt="UX Designer Profile"
-                    className="w-full h-full object-cover grayscale hover:grayscale-0 hover:cursor-none hover:scale-110 transition-all duration-700 relative "
+                    className="w-full h-full object-cover grayscale hover:grayscale-0 hover:cursor-none hover:scale-110 transition-all duration-700 relative z-10 "
                   />
                 </div>
 
@@ -206,31 +220,36 @@ const HeroSection: React.FC = () => {
               variants={initialFadeInUp}
             >
               <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold leading-tight">
-                I'm a{" "}
-                <span className="relative">
-                  <motion.span
-                    className="text-transparent bg-clip-text bg-gradient-to-r from-teal-400 to-emerald-400"
-                    animate={{
-                      backgroundPosition: ["0% 50%", "100% 50%", "0% 50%"],
+                {hero.beforeTypewriterText}{" "}
+                <span className="relative inline-block">
+                  {/* Fixed height container to prevent jumping */}
+                  <span
+                    className="inline-block min-w-[280px]  text-left"
+                    style={{
+                      minHeight: "1.2em", // Ensures consistent height
+                      verticalAlign: "top", // Prevents baseline shifts
                     }}
-                    transition={{ duration: 3, repeat: Infinity }}
-                    style={{ backgroundSize: "200% 200%" }}
                   >
-                    <span ref={typewriterRef}>ui designer</span>
-                    <span
-                      ref={cursorRef}
-                      className="inline-flex w-0.5 h-16 sm:h-10 lg:h-18 bg-teal-400 ml-1"
-                      style={{ opacity: 1 }}
+                    <motion.span
+                      className="text-transparent bg-clip-text bg-gradient-to-r from-teal-400 to-emerald-400"
+                      animate={{
+                        backgroundPosition: ["0% 50%", "100% 50%", "0% 50%"],
+                      }}
+                      transition={{ duration: 3, repeat: Infinity }}
+                      style={{ backgroundSize: "200% 200%" }}
                     >
-                      |
-                    </span>
-                  </motion.span>{" "}
+                      <span ref={typewriterRef}>ui designer</span>
+                      <span
+                        ref={cursorRef}
+                        className="inline-flex w-0.5 h-16 sm:h-10 lg:h-18 bg-teal-400 ml-1"
+                        style={{ opacity: 1 }}
+                      >
+                        |
+                      </span>
+                    </motion.span>
+                  </span>
                 </span>
-                <span className="text-white"> who Codes in </span>
-                <span className="bg-gradient-to-r from-orange-400 to-red-500 bg-clip-text text-transparent">
-                  {" "}
-                  JAVA
-                </span>
+                <span className="text-white"> {hero.remainingText} </span>
               </h1>
             </motion.div>
 
@@ -240,12 +259,7 @@ const HeroSection: React.FC = () => {
               variants={initialFadeInUp}
             >
               <p className="text-white text-lg leading-relaxed px-4">
-                I'm Uthman, a UX designer with 3+ years of experience creating
-                user-centered digital products. With a background in Java
-                development and OOP/architecture, I blend empathy with technical
-                insight to craft interfaces that are both intuitive and
-                efficient. I'm passionate about solving real problems through
-                clean, purposeful design.
+                {hero.subHeading}
               </p>
             </motion.div>
 
@@ -254,7 +268,7 @@ const HeroSection: React.FC = () => {
               className="flex flex-col sm:flex-row gap-4 sm:gap-6 justify-center items-center pt-4 sm:pt-8"
               variants={initialFadeInUp}
             >
-              <motion.button
+              <motion.a
                 style={{
                   boxShadow: "2px 2px 0px 0px #032A22",
                 }}
@@ -263,6 +277,7 @@ const HeroSection: React.FC = () => {
                 initial="rest"
                 whileHover="hover"
                 whileTap="tap"
+                href={hero.hireLink?.url}
               >
                 <motion.div
                   className="absolute inset-0 bg-gradient-to-r "
@@ -270,7 +285,7 @@ const HeroSection: React.FC = () => {
                   whileHover={{ x: "0%" }}
                   transition={{ duration: 0.3 }}
                 />
-                <span className="relative z-10">Hire me</span>
+                <span className="relative z-10">{ hero.hireLink?.text}</span>
                 <motion.div
                   className="absolute inset-0 bg-white/20"
                   initial={{ scale: 0, opacity: 0 }}
@@ -278,14 +293,15 @@ const HeroSection: React.FC = () => {
                   transition={{ duration: 0.3 }}
                   style={{ borderRadius: "50%" }}
                 />
-              </motion.button>
+              </motion.a>
 
-              <motion.button
+              <motion.a
                 className="group px-8 py-4 border-2 border-[#F2F2F299] text-white font-semibold rounded-xl hover:border-[#0FB492] hover:text-[#0FB492] hover:bg-teal-400/5 relative overflow-hidden w-full sm:w-auto cursor-pointer"
                 variants={buttonHover}
                 initial="rest"
                 whileHover="hover"
                 whileTap="tap"
+                href={hero.cvLink?.externalUrl || "#"}
               >
                 <motion.div
                   className="absolute inset-0 border-2 border-teal-400 rounded-xl"
@@ -293,8 +309,8 @@ const HeroSection: React.FC = () => {
                   whileHover={{ scale: 1, opacity: 1 }}
                   transition={{ duration: 0.3 }}
                 />
-                <span className="relative z-10">Download CV</span>
-              </motion.button>
+                <span className="relative z-10">{hero.cvLink?.text}</span>
+              </motion.a>
             </motion.div>
           </div>
         </motion.div>

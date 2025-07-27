@@ -8,39 +8,30 @@ import {
   type Variants,
   MotionValue,
 } from "framer-motion";
+import type { Experience } from "sanity/interfaces/homepage";
+import { urlFor } from "sanity/sanityClient";
 
-
-interface ExperienceCardProps {
-  company: string;
-  role: string;
-  period: string;
-  description: string;
-  icon: React.ReactNode; 
+interface ExperienceCardProps extends Experience {
   index: number;
-  isExploreProject?: boolean; 
 }
 
-// 2. COMPONENT WITH PROPER TYPING
 const ExperienceCard: React.FC<ExperienceCardProps> = ({
-  company,
-  role,
-  period,
   description,
-  icon,
+  organisationLogo,
+  jobTitle,
+  duration,
   index,
-  isExploreProject = false,
 }) => {
-  // 3. PROPER REF TYPING - HTMLDivElement for div elements
+
+    console.log(organisationLogo.asset);
   const cardRef = useRef<HTMLDivElement>(null);
   const [isHovered, setIsHovered] = useState<boolean>(false);
 
-  // 4. PROPER HOOK USAGE WITH TYPES
   const isInView = useInView(cardRef, {
     once: true,
     margin: "-10% 0px -10% 0px",
   });
 
-  // 5. EXPLICIT TYPING FOR ANIMATION VARIANTS
   const cardVariants: Variants = {
     hidden: {
       opacity: 0,
@@ -58,18 +49,15 @@ const ExperienceCard: React.FC<ExperienceCardProps> = ({
     },
   };
 
-  // 6. MOTION VALUES WITH PROPER TYPING
   const mouseX: MotionValue<number> = useMotionValue(0);
   const mouseY: MotionValue<number> = useMotionValue(0);
 
   const smoothMouseX = useSpring(mouseX, { stiffness: 300, damping: 50 });
   const smoothMouseY = useSpring(mouseY, { stiffness: 300, damping: 50 });
 
-  // 7. PROPER TRANSFORM USAGE
   const lightX = useTransform(smoothMouseX, [-200, 200], [30, 70]);
   const lightY = useTransform(smoothMouseY, [-200, 200], [30, 70]);
 
-  // 8. PROPERLY TYPED EVENT HANDLERS
   const handleMouseMove = (event: React.MouseEvent<HTMLDivElement>) => {
     if (!cardRef.current) return;
 
@@ -85,15 +73,6 @@ const ExperienceCard: React.FC<ExperienceCardProps> = ({
     setIsHovered(false);
     mouseX.set(0);
     mouseY.set(0);
-  };
-
-  // 9. HANDLE BUTTON CLICK WITH PROPER TYPING
-  const handleExploreClick = (
-    event: React.MouseEvent<HTMLButtonElement>
-  ): void => {
-    event.preventDefault();
-    // Add your navigation logic here
-    console.log("Exploring project...");
   };
 
   return (
@@ -175,7 +154,15 @@ const ExperienceCard: React.FC<ExperienceCardProps> = ({
                 whileHover={{ scale: 1.1, opacity: 1 }}
                 transition={{ duration: 0.2 }}
               >
-                {icon}
+                              <img
+                                  className="rounded-full w-6 h-6"
+                  src={urlFor(organisationLogo.asset._id)
+                    .width(48)
+                    .height(48)
+                    .format("webp")
+                    .url()}
+                  alt={organisationLogo.alt || ""}
+                />
               </motion.picture>
               <motion.h3
                 className="text-white/90 font-medium text-base"
@@ -183,18 +170,18 @@ const ExperienceCard: React.FC<ExperienceCardProps> = ({
                 animate={isInView ? { opacity: 1 } : {}}
                 transition={{ delay: index * 0.1 + 0.2 }}
               >
-                {role} – {company}
+                {jobTitle}
               </motion.h3>
             </span>
 
-            <span >
+            <span>
               <motion.p
                 className="text-white/50 text-sm"
                 initial={{ opacity: 0 }}
                 animate={isInView ? { opacity: 1 } : {}}
                 transition={{ delay: index * 0.1 + 0.3 }}
               >
-                {period}
+                {duration}
               </motion.p>
             </span>
           </div>
@@ -208,8 +195,6 @@ const ExperienceCard: React.FC<ExperienceCardProps> = ({
           >
             {description}
           </motion.p>
-
-         
 
           {/* Subtle hover indicator */}
           <motion.div

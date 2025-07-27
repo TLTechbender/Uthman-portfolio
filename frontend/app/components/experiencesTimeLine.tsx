@@ -2,8 +2,14 @@ import { useScroll, motion } from "framer-motion";
 import { useRef } from "react";
 import AnimatedGradientExperiencesSection from "./effects/animatedGradientExperiencesSection";
 import ExperienceCard from "./experiencesCard";
+import type { Experience } from "sanity/interfaces/homepage";
 
-const ExperienceTimeline = () => {
+interface ExperiencesTimelineProps {
+  experiences: Experience[]
+}
+
+const ExperiencesTimeline: React.FC<ExperiencesTimelineProps> = ({ experiences }) => {
+  console.log(experiences)
   const containerRef = useRef(null);
   const { scrollYProgress } = useScroll({
     target: containerRef,
@@ -21,53 +27,7 @@ const ExperienceTimeline = () => {
     },
   };
 
-  const experiences = [
-    {
-      company: "InspireCraft",
-      role: "UX Designer",
-      period: "Apr 2025 - Present",
-      description:
-        "Crafted a high-converting website for an AI-powered software that helps brands recover abandoned carts using ethical intelligence and predictive analytics. Currently designing the product interface with a focus on seamless AI-driven workflows and user trust.",
-      icon: "✨",
-      isExploreProject: true,
-    },
-    {
-      company: "SpreadAI",
-      role: "UI/UX Designer",
-      period: "2024 - Present",
-      description:
-        "Collaborated with a team to design intuitive user interfaces that make data insights and predictive analytics accessible to non-technical users, integrating complex financial calculations with clean visual design for enhanced user experience.",
-      icon: "📊",
-      isExploreProject: true,
-    },
-    {
-      company: "Convoya",
-      role: "UI/UX Designer",
-      period: "2024 - Present",
-      description:
-        "Designed a smart techniques blending app with gamification, visual feedback and dynamic content. The app features adaptive and sophisticated algorithms that adjust to individual user behavior and real-time data for compelling and accessibility.",
-      icon: "🚀",
-      isExploreProject: true,
-    },
-    {
-      company: "Musafirr",
-      role: "Product Designer",
-      period: "Jun 2023 - Apr 2024",
-      description:
-        "Designed and optimized core marketplace features focused on improving user trust and travel experiences based on browsing and offline strategies. Directly contributed to a 1.2x increase in booking confirmation and overall platform reliability through detailed UI/UX improvements and accessibility.",
-      icon: "✈️",
-      isExploreProject: true,
-    },
-    {
-      company: "ITCC, University of Ibadan",
-      role: "Lead Designer",
-      period: "2019 - Present",
-      description:
-        "Designed and oversaw collaborative senior software used by thousands of students for managing booking, parking, library, registrations, and academics. Led collaborative improvement projects as they progressed, improving monthly active and enhancing overall user satisfaction in the university community.",
-      icon: "🎓",
-      isExploreProject: true,
-    },
-  ];
+  
 
   return (
     <div className="relative">
@@ -126,6 +86,7 @@ const ExperienceTimeline = () => {
                   <ExperienceCard {...exp} index={index} />
                 </div>
               ))}
+              
             </motion.div>
           </div>
         </div>
@@ -134,4 +95,4 @@ const ExperienceTimeline = () => {
   );
 };
 
-export default ExperienceTimeline;
+export default ExperiencesTimeline;

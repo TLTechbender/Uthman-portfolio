@@ -2,121 +2,90 @@ import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { FaX } from "react-icons/fa6";
 import { BiMenu } from "react-icons/bi";
+import { useLocation, useNavigate } from "react-router";
 import navVector from "../assets/images/nav-vector.svg";
 import testLogo from "../assets/images/test-logo.jpg";
+import type { Navbar } from "sanity/interfaces/siteSettings";
+import { urlFor } from "sanity/sanityClient";
 
-const Nav: React.FC = () => {
+interface NavProps {
+  navbar: Navbar;
+}
+
+const Nav: React.FC<NavProps> = ({ navbar }) => {
+  console.log("🔍 Nav component loaded with navbar:", navbar);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [activeSection, setActiveSection] = useState<string>("");
   const [hoveredItem, setHoveredItem] = useState<string | null>(null);
   const [hoveredMobileItem, setHoveredMobileItem] = useState<string | null>(
     null
   );
-  const [isScrolled, setIsScrolled] = useState(false); // Add this state
+  const [isScrolled, setIsScrolled] = useState<boolean>(false);
 
-  const navItems = [
-    { name: "Home", href: "#home", badgeText: "H" },
-    { name: "About Us", href: "#about", badgeText: "A" },
-    { name: "Portfolio", href: "#portfolio", badgeText: "P" },
-  ];
-
-  const toggleMenu = () => setIsMenuOpen(!isMenuOpen);
+  const location = useLocation();
+  const navigate = useNavigate();
 
   useEffect(() => {
-    // Function to determine which section is currently active
-    const updateActiveSection = () => {
-      const scrollPosition = window.scrollY + 100;
+    if (typeof window === "undefined") return;
 
-      // Update scroll state for navbar background
-      setIsScrolled(window.scrollY > 50);
-
-      // Check if we're at the very top
-      if (window.scrollY < 100) {
-        setActiveSection("");
-        return;
-      }
-
-      // Find all sections and determine which one is active
-      const sections = navItems
-        .map((item) => ({
-          id: item.href.substring(1),
-          element: document.getElementById(item.href.substring(1)),
-        }))
-        .filter((section) => section.element !== null);
-
-      let currentSection = "";
-
-      for (const section of sections) {
-        const element = section.element!;
-        const offsetTop = element.offsetTop;
-        const offsetBottom = offsetTop + element.offsetHeight;
-
-        if (scrollPosition >= offsetTop && scrollPosition < offsetBottom) {
-          currentSection = section.id;
-          break;
-        }
-      }
-
-      setActiveSection(currentSection);
-    };
-
-    // Initial check
-    updateActiveSection();
-
-    // Throttled scroll handler for better performance
-    let ticking = false;
     const handleScroll = () => {
-      if (!ticking) {
-        requestAnimationFrame(() => {
-          updateActiveSection();
-          ticking = false;
-        });
-        ticking = true;
-      }
+      setIsScrolled(window.scrollY > 50);
     };
 
-    // Listen for hash changes
-    const handleHashChange = () => {
-      const hash = window.location.hash.substring(1);
-      if (hash) {
-        setActiveSection(hash);
-      }
-    };
+    setIsScrolled(window.scrollY > 50);
 
     window.addEventListener("scroll", handleScroll, { passive: true });
-    window.addEventListener("hashchange", handleHashChange);
 
     return () => {
       window.removeEventListener("scroll", handleScroll);
-      window.removeEventListener("hashchange", handleHashChange);
     };
-  }, [navItems]); // Add navItems as dependency
+  }, []);
+
+  const navItems = [
+    { name: "Home", href: "/home", badgeText: "H" },
+    { name: "About Us", href: "/about", badgeText: "A" },
+    { name: "Portfolio", href: "/portfolio", badgeText: "P" },
+  ];
+
+  const toggleMenu = () => {
+    setIsMenuOpen(!isMenuOpen);
+  };
+
+  useEffect(() => {
+    if (typeof document === "undefined") return;
+
+    if (isMenuOpen) {
+      //never did this before bro
+      const originalOverflow = document.body.style.overflow;
+      document.body.style.overflow = "hidden";
+
+      return () => {
+        document.body.style.overflow = originalOverflow;
+      };
+    } else {
+      document.body.style.overflow = "";
+    }
+
+    return () => {
+      if (typeof document !== "undefined") {
+        document.body.style.overflow = "";
+      }
+    };
+  }, [isMenuOpen]);
 
   const handleNavClick = (href: string) => {
-    const targetId = href.substring(1);
-    const targetElement = document.getElementById(targetId);
-
-    if (targetElement) {
-      // Calculate offset for fixed navbar
-      const navbarHeight = 80; // Adjust based on your navbar height
-      const elementPosition = targetElement.getBoundingClientRect().top;
-      const offsetPosition =
-        elementPosition + window.pageYOffset - navbarHeight;
-
-      window.scrollTo({
-        top: offsetPosition,
-        behavior: "smooth",
-      });
-
-      // Update URL hash without jumping
-      window.history.pushState(null, "", href);
-      setActiveSection(targetId);
-    }
+    navigate(href);
 
     // Close mobile menu if open
     if (isMenuOpen) {
       setIsMenuOpen(false);
     }
+  };
+
+  //Didn't use navLink cos of things around formatting sha
+  const isActiveRoute = (href: string) => {
+    if (href === "/" && location.pathname === "/") return true;
+    if (href !== "/" && location.pathname === href) return true;
+    return false;
   };
 
   return (
@@ -133,19 +102,19 @@ const Nav: React.FC = () => {
           <header className="flex-shrink-0">
             <h1 className="sr-only">Uthman's Portfolio</h1>
             <button
-              onClick={() => handleNavClick("#home")}
+              onClick={() => handleNavClick("/")}
               aria-label="Go to homepage"
               className="focus:outline-none focus:ring-2 focus:ring-teal-500 rounded-md"
             >
               <picture className="w-fit h-fit">
                 <img
-                  className="object-contain max-w-[60px] max-h-[40px] h-full hover:scale-110 hover:rotate-12 transition-all duration-300"
-                  src={testLogo}
+                  className="object-contain max-w-[60px] max-h-[40px] h-full hover:scale-110 hover:cursor-none hover:rotate-30 transition-all duration-300"
+                  src={urlFor(navbar.logo.asset._id)
+                    .width(48)
+                    .height(48)
+                    .format("webp")
+                    .url()}
                   alt="Uthman's logo"
-                  onError={(e) => {
-                    console.warn("Logo failed to load:", e);
-                    // Fallback could be set here
-                  }}
                 />
               </picture>
             </button>
@@ -155,8 +124,7 @@ const Nav: React.FC = () => {
           <div className="hidden lg:flex items-center justify-center flex-1">
             <ul className="flex items-center space-x-12" role="menubar">
               {navItems.map((item) => {
-                const sectionId = item.href.substring(1);
-                const isActive = activeSection === sectionId;
+                const isActive = isActiveRoute(item.href);
                 const isHovered = hoveredItem === item.name;
 
                 return (
@@ -176,7 +144,7 @@ const Nav: React.FC = () => {
                           relative flex items-center space-x-3 px-4 py-2
                           transition-colors duration-300
                           ${
-                            isActive
+                            isActive || isHovered
                               ? "text-white"
                               : "text-gray-300 hover:text-white"
                           }
@@ -188,11 +156,9 @@ const Nav: React.FC = () => {
                           rounded-lg border-[#424242] border-2 border-b-4
                           transition-all duration-300
                           ${
-                            isActive
+                            isActive || isHovered
                               ? "border-teal-400 bg-teal-400/10"
-                              : isHovered
-                                ? "border-teal-400/50"
-                                : ""
+                              : ""
                           }
                         `}
                         >
@@ -208,7 +174,7 @@ const Nav: React.FC = () => {
                           <span
                             className={`
                             text-center font-medium leading-5 capitalize
-                            ${isActive ? "text-teal-300" : "text-[#D6D6D6]"}
+                            ${isActive || isHovered ? "text-teal-300" : "text-[#D6D6D6]"}
                           `}
                           >
                             {item.badgeText}
@@ -218,7 +184,7 @@ const Nav: React.FC = () => {
                         <span
                           className={`
                           font-medium text-base tracking-wide
-                          ${isActive ? "text-white" : ""}
+                          ${isActive || isHovered ? "text-white" : ""}
                         `}
                         >
                           {item.name}
@@ -256,9 +222,9 @@ const Nav: React.FC = () => {
             </ul>
           </div>
 
-          {/* Contact Button - Desktop */}
+    
           <div className="hidden lg:flex">
-            <motion.button
+            <motion.a
               className="relative cursor-pointer bg-teal-600/30 hover:bg-teal-500 px-6 py-3 rounded-[68px] text-sm font-semibold transition-all duration-300 shadow-lg hover:shadow-teal-500/25 focus:outline-none focus:ring-2 focus:ring-teal-500"
               whileHover={{
                 scale: 1.05,
@@ -267,10 +233,7 @@ const Nav: React.FC = () => {
               whileTap={{ scale: 0.98 }}
               transition={{ duration: 0.2 }}
               aria-label="Contact us"
-              onClick={() => {
-                // Add contact functionality here
-                console.log("Contact button clicked");
-              }}
+              href={navbar.contact || ""}
             >
               <span className="relative z-10 text-white font-normal text-base leading-5 capitalize">
                 Contact Us
@@ -282,7 +245,7 @@ const Nav: React.FC = () => {
                 transition={{ duration: 0.3 }}
                 aria-hidden="true"
               />
-            </motion.button>
+            </motion.a>
           </div>
 
           {/* Mobile menu button */}
@@ -326,7 +289,7 @@ const Nav: React.FC = () => {
             {/* Mobile Menu Panel */}
             <motion.div
               id="mobile-menu"
-              className="fixed top-0 right-0 w-full h-full bg-gradient-to-br from-slate-900/98 to-slate-800/98 backdrop-blur-xl z-50 lg:hidden overflow-y-auto"
+              className="fixed top-0 right-0 w-full h-screen bg-gradient-to-br from-slate-900/98 to-slate-800/98 backdrop-blur-xl z-50 lg:hidden overflow-hidden"
               initial={{ opacity: 0, x: "100%" }}
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: "100%" }}
@@ -348,12 +311,11 @@ const Nav: React.FC = () => {
               </div>
 
               {/* Mobile Menu Content */}
-              <div className="flex flex-col justify-center items-center min-h-full px-8 py-20">
+              <div className="flex flex-col justify-center items-center h-full px-8">
                 {/* Navigation Items */}
                 <div className="w-full max-w-md space-y-6">
                   {navItems.map((item, index) => {
-                    const sectionId = item.href.substring(1);
-                    const isActive = activeSection === sectionId;
+                    const isActive = isActiveRoute(item.href);
                     const isHovered = hoveredMobileItem === item.name;
 
                     return (
@@ -375,11 +337,9 @@ const Nav: React.FC = () => {
                             transition-all duration-300 border-2 group relative overflow-hidden
                             focus:outline-none focus:ring-2 focus:ring-teal-500
                             ${
-                              isActive
+                              isActive || isHovered
                                 ? "text-white bg-gradient-to-r from-teal-600/30 to-cyan-600/30 border-teal-500/70 shadow-xl shadow-teal-500/20"
-                                : isHovered
-                                  ? "text-white bg-slate-800/80 border-slate-500 shadow-lg"
-                                  : "text-gray-300 hover:text-white bg-slate-800/40 hover:bg-slate-800/80 border-slate-700/60 hover:border-slate-500"
+                                : "text-gray-300 hover:text-white bg-slate-800/40 hover:bg-slate-800/80 border-slate-700/60 hover:border-slate-500"
                             }
                           `}
                           onClick={() => handleNavClick(item.href)}
@@ -397,11 +357,9 @@ const Nav: React.FC = () => {
                                 text-sm bg-[#042428] flex gap-2 items-center px-4 py-3 
                                 rounded-xl border-2 border-b-4 transition-all duration-300 min-w-[60px]
                                 ${
-                                  isActive
+                                  isActive || isHovered
                                     ? "border-teal-400 bg-teal-400/20 shadow-lg shadow-teal-400/30"
-                                    : isHovered
-                                      ? "border-teal-400/70 bg-teal-400/10"
-                                      : "border-slate-600 group-hover:border-teal-400/70"
+                                    : "border-slate-600 group-hover:border-teal-400/70"
                                 }
                               `}
                               whileHover={{ scale: 1.05 }}
@@ -409,11 +367,9 @@ const Nav: React.FC = () => {
                             >
                               <img
                                 className={`w-4 h-4 transition-all duration-300 ${
-                                  isActive
+                                  isActive || isHovered
                                     ? "brightness-125 drop-shadow-sm"
-                                    : isHovered
-                                      ? "brightness-115"
-                                      : "group-hover:brightness-115"
+                                    : "group-hover:brightness-115"
                                 }`}
                                 src={navVector}
                                 alt=""
@@ -426,11 +382,9 @@ const Nav: React.FC = () => {
                                 className={`
                                   text-center font-bold leading-5 capitalize transition-colors duration-300 text-base
                                   ${
-                                    isActive
+                                    isActive || isHovered
                                       ? "text-teal-200 drop-shadow-sm"
-                                      : isHovered
-                                        ? "text-teal-300"
-                                        : "text-[#D6D6D6] group-hover:text-teal-300"
+                                      : "text-[#D6D6D6] group-hover:text-teal-300"
                                   }
                                 `}
                               >
@@ -440,11 +394,9 @@ const Nav: React.FC = () => {
 
                             <span
                               className={`font-semibold text-xl transition-colors duration-300 ${
-                                isActive
+                                isActive || isHovered
                                   ? "text-white drop-shadow-sm"
-                                  : isHovered
-                                    ? "text-white"
-                                    : "group-hover:text-white"
+                                  : "group-hover:text-white"
                               }`}
                             >
                               {item.name}
@@ -456,11 +408,9 @@ const Nav: React.FC = () => {
                             className={`
                               w-3 h-3 rounded-full transition-all duration-300
                               ${
-                                isActive
+                                isActive || isHovered
                                   ? "bg-gradient-to-r from-teal-400 to-cyan-400 shadow-lg shadow-teal-400/60"
-                                  : isHovered
-                                    ? "bg-teal-400/90 shadow-md shadow-teal-400/40"
-                                    : "bg-slate-600 group-hover:bg-teal-400/70"
+                                  : "bg-slate-600 group-hover:bg-teal-400/70"
                               }
                             `}
                             animate={{

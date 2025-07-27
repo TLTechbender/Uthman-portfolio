@@ -1,6 +1,4 @@
 import React, { useEffect, useRef } from "react";
-import { useInView } from "framer-motion";
-
 
 import figmaLogo from "../../assets/images/figma-logo.svg";
 import greenBolt from "../../assets/images/green-bolt-logo.svg";
@@ -26,17 +24,20 @@ const BouncingLogosHeroSection = () => {
   const logosRef = useRef<Logo[]>([]);
   const animationRef = useRef<number>(0);
   const containerDimensionsRef = useRef({ width: 0, height: 0 });
-
+  const lastFrameTime = useRef<number>(0);
 
   const logoImages = [figmaLogo, toolTip, greenBolt, starLight, iceLogo];
 
+  // Target 30fps instead of 60fps for better performance
+  const TARGET_FPS = 30;
+  const FRAME_DURATION = 1000 / TARGET_FPS;
+
   // Initialize logos with direct DOM elements
   useEffect(() => {
-    if ( !containerRef.current) return;
+    if (!containerRef.current) return;
 
     const container = containerRef.current;
     const rect = container.getBoundingClientRect();
-
 
     containerDimensionsRef.current = { width: rect.width, height: rect.height };
 
@@ -52,13 +53,13 @@ const BouncingLogosHeroSection = () => {
       imgElement.alt = "bouncing logo";
       imgElement.className = "absolute select-none pointer-events-none";
 
-      // Responsive natural sizing - let images keep their natural size but scale responsively
-      imgElement.style.maxWidth = "80px"; // Max size for larger screens
+      // Responsive natural sizing
+      imgElement.style.maxWidth = "80px";
       imgElement.style.maxHeight = "80px";
-      imgElement.style.width = "clamp(40px, 6vw, 80px)"; // Responsive: min 40px, preferred 6vw, max 80px
-      imgElement.style.height = "auto"; // Maintain aspect ratio
+      imgElement.style.width = "clamp(40px, 6vw, 80px)";
+      imgElement.style.height = "auto";
       imgElement.style.filter = "drop-shadow(0 4px 12px rgba(0,0,0,0.2))";
-      imgElement.style.willChange = "transform"; // Optimize for animations
+      imgElement.style.willChange = "transform";
 
       // Add to container first to get computed dimensions
       container.appendChild(imgElement);
@@ -70,19 +71,16 @@ const BouncingLogosHeroSection = () => {
         parseInt(computedStyle.height) || 60
       );
 
-      // Add to container
-      container.appendChild(imgElement);
-
-      // Store logo data
+      // Store logo data with much slower initial velocities
       const logo: Logo = {
         id: i,
         x: Math.random() * (rect.width - logoSize) + logoSize / 2,
         y: Math.random() * (rect.height - logoSize) + logoSize / 2,
-        vx: (Math.random() - 0.5) * 8,
-        vy: (Math.random() - 0.5) * 8,
+        vx: (Math.random() - 0.5) * 7, // Much slower: reduced from 20 to 4
+        vy: (Math.random() - 0.5) * 7, // Much slower: reduced from 30 to 4
         size: logoSize,
-        rotation: Math.random() * 360, // Random initial rotation
-        rotationSpeed: (Math.random() - 0.5) * 8, // Faster rotation
+        rotation: Math.random() * 360,
+        rotationSpeed: (Math.random() - 0.5) * 4, // Much slower rotation: reduced from 3 to 0.5
         element: imgElement,
         image: logoImages[i],
       };
@@ -103,7 +101,7 @@ const BouncingLogosHeroSection = () => {
       }
       logosRef.current = [];
     };
-  }, [ logoImages]);
+  }, [logoImages]);
 
   // Handle container resize
   useEffect(() => {
@@ -132,8 +130,16 @@ const BouncingLogosHeroSection = () => {
     logo.element.style.transform = transform;
   };
 
-  // Animation loop with direct DOM updates
-  const animate = () => {
+  // Throttled animation loop with much gentler movements
+  const animate = (currentTime: number) => {
+    // Throttle to target FPS
+    if (currentTime - lastFrameTime.current < FRAME_DURATION) {
+      animationRef.current = requestAnimationFrame(animate);
+      return;
+    }
+
+    lastFrameTime.current = currentTime;
+
     const { width, height } = containerDimensionsRef.current;
 
     if (width === 0 || height === 0) {
@@ -142,44 +148,53 @@ const BouncingLogosHeroSection = () => {
     }
 
     logosRef.current.forEach((logo) => {
-      // Add some coordinated chaos - logos influence each other slightly
-      const time = Date.now() * 0.001; // Current time in seconds
-      const chaosX = Math.sin(time + logo.id) * 0.5; // Subtle wave motion
-      const chaosY = Math.cos(time + logo.id * 1.5) * 0.5;
+      // Much gentler coordinated movement
+      const time = currentTime * 0.0005; // Slower time progression: reduced from 0.001 to 0.0005
+      const chaosX = Math.sin(time + logo.id) * 0.1; // Reduced chaos: from 0.5 to 0.1
+      const chaosY = Math.cos(time + logo.id * 1.5) * 0.1; // Reduced chaos: from 0.5 to 0.1
 
-      // Update position with chaos
+      // Update position with gentle chaos
       logo.x += logo.vx + chaosX;
       logo.y += logo.vy + chaosY;
       logo.rotation += logo.rotationSpeed;
 
-      // Bounce off walls with less damping for more energy
-      const damping = 0.95; // Less damping = more chaotic bouncing
+      // Bounce off walls with more damping for smoother movement
+      const damping = 0.8; // More damping: reduced from 0.95 to 0.8
 
       if (logo.x - logo.size / 2 <= 0 || logo.x + logo.size / 2 >= width) {
         logo.vx = -logo.vx * damping;
-        // Add some randomness to bounce angle
-        logo.vx += (Math.random() - 0.5) * 2;
+        // Reduced randomness in bounce
+        logo.vx += (Math.random() - 0.5) * 0.5; // Reduced from 2 to 0.5
         logo.x =
           logo.x - logo.size / 2 <= 0 ? logo.size / 2 : width - logo.size / 2;
       }
 
       if (logo.y - logo.size / 2 <= 0 || logo.y + logo.size / 2 >= height) {
         logo.vy = -logo.vy * damping;
-        // Add some randomness to bounce angle
-        logo.vy += (Math.random() - 0.5) * 2;
+        // Reduced randomness in bounce
+        logo.vy += (Math.random() - 0.5) * 0.5; // Reduced from 2 to 0.5
         logo.y =
           logo.y - logo.size / 2 <= 0 ? logo.size / 2 : height - logo.size / 2;
       }
 
-      // Reduce friction for more sustained movement
-      logo.vx *= 0.9995; // Much less friction
-      logo.vy *= 0.9995;
+      // More friction for sustained but slower movement
+      logo.vx *= 0.999; // More friction: reduced from 0.9995 to 0.999
+      logo.vy *= 0.999;
 
-      // Occasional speed boost for chaos
-      if (Math.random() < 0.002) {
-        // 0.2% chance per frame
-        logo.vx += (Math.random() - 0.5) * 3;
-        logo.vy += (Math.random() - 0.5) * 3;
+      // Very occasional gentle speed boost
+      if (Math.random() < 0.0005) {
+        // Much less frequent: reduced from 0.002 to 0.0005
+        logo.vx += (Math.random() - 0.5) * 0.5; // Gentler boost: reduced from 3 to 0.5
+        logo.vy += (Math.random() - 0.5) * 0.5;
+      }
+
+      // Minimum velocity to prevent logos from getting stuck
+      const minVelocity = 0.1;
+      if (Math.abs(logo.vx) < minVelocity) {
+        logo.vx = logo.vx >= 0 ? minVelocity : -minVelocity;
+      }
+      if (Math.abs(logo.vy) < minVelocity) {
+        logo.vy = logo.vy >= 0 ? minVelocity : -minVelocity;
       }
 
       // Update DOM element directly
@@ -191,6 +206,7 @@ const BouncingLogosHeroSection = () => {
 
   const startAnimation = () => {
     stopAnimation(); // Ensure no duplicate animations
+    lastFrameTime.current = 0;
     animationRef.current = requestAnimationFrame(animate);
   };
 
@@ -201,15 +217,11 @@ const BouncingLogosHeroSection = () => {
     }
   };
 
- 
-
-  //another ai assist here bro, I was using react state before, that was so chaotic at 60fps but now it's better
   return (
     <div
       className="absolute inset-0 w-full h-full overflow-hidden"
       ref={containerRef}
       style={{
-       
         willChange: "contents",
         backfaceVisibility: "hidden",
         perspective: "1000px",

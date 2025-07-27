@@ -1,21 +1,50 @@
 import FooterCredit from "./footerCredit";
-
 import snake from "../assets/images/snake.svg";
 import BouncingFooterShapes from "./effects/bouncingFooterShapes";
+import type {  FooterData, SocialPlatform } from "sanity/interfaces/siteSettings";
 
-const Footer: React.FC = () => {
+// Define the types based on your layout.tsx interfaces
+
+interface FooterProps {
+ footerData: FooterData
+}
+
+const Footer: React.FC<FooterProps> = ({ footerData }) => {
   const date = new Date();
-
   const currentYear = date.getFullYear();
-
   const devedYear = 2025;
-
   const copyrightYearString =
-    devedYear == currentYear ? "2025" : `${devedYear - currentYear}`;
+    devedYear == currentYear ? "2025" : `${devedYear} - ${currentYear}`;
+
+  // Filter only enabled social links
+  const enabledSocialLinks = footerData.socialLinks.filter(
+    (link) => link.isEnabled
+  );
+
+  // Function to capitalize platform names for display
+  const formatPlatformName = (platform: SocialPlatform): string => {
+    switch (platform) {
+      case "linkedin":
+        return "LinkedIn";
+      case "behance":
+        return "Behance";
+      case "github":
+        return "GitHub";
+      case "youtube":
+        return "YouTube";
+      case "tiktok":
+        return "TikTok";
+      case "facebook":
+        return "Facebook";
+      default:
+        return platform.charAt(0).toUpperCase() + platform.slice(1);
+    }
+  };
+
   return (
     <div>
       <div>
-        <div className="flex flex-col  p-6 md:p-12  lg:p-16 lg:flex-row">
+        <div className="flex flex-col p-6 md:p-12 lg:p-16 lg:flex-row">
           <div className="flex-1 flex lg:items-end">
             <div>
               <span className="w-full flex justify-end">
@@ -30,16 +59,17 @@ const Footer: React.FC = () => {
                 <h2 className="text-white text-base italic">
                   Have a bold product vision? I help founders and teams bring
                   standout digital products to life — from polished UX to
-                  production-ready designs. Let’s talk!
+                  production-ready designs. Let's talk!
                 </h2>
-                <button className="px-3 py-2 bg-[#0FB492] text-white w-fit  rounded-lg animate-pulse hover:animate-none transition-all duration-300">
+                <button className="px-3 py-2 bg-[#0FB492] text-white w-fit rounded-lg animate-pulse hover:animate-none transition-all duration-300">
                   view more
                 </button>
               </div>
             </div>
           </div>
+
           <div className="flex-1">
-            <div className=" flex flex-col justify-between p-6 md:p-12 lg:p-16">
+            <div className="flex flex-col justify-between p-6 md:p-12 lg:p-16">
               <div className="flex-1 flex flex-col justify-center">
                 <div className="mb-8">
                   <h1 className="text-4xl md:text-6xl lg:text-7xl xl:text-8xl font-light leading-tight">
@@ -79,12 +109,17 @@ const Footer: React.FC = () => {
                       Connect
                     </h2>
                     <div className="space-y-2 md:space-y-3">
-                      <p className="text-gray-300 text-sm md:text-base italic">
-                        Linkedin
-                      </p>
-                      <p className="text-gray-300 text-sm md:text-base italic">
-                        Behance
-                      </p>
+                      {enabledSocialLinks.map((socialLink, index) => (
+                        <a
+                          key={index}
+                          href={socialLink.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="block text-gray-300 text-sm md:text-base italic hover:text-white transition-colors duration-200"
+                        >
+                          {formatPlatformName(socialLink.platform)}
+                        </a>
+                      ))}
                     </div>
                   </div>
 
