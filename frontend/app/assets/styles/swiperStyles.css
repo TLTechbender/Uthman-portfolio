@@ -3,7 +3,7 @@
   overflow: visible;
 }
 
-//hacking both of these for consistency
+/* hacking both of these for consistency */
 .mobile-testimonial-swiper .swiper-slide {
   width: 280px;
   min-height: clamp(240px, 40vh, 280px);
@@ -24,6 +24,22 @@
   opacity: 1;
 }
 
+.desktop-testimonial-swiper {
+  padding: 50px 0 70px 0;
+  overflow: visible;
+}
+
+/* hacking both of these for consistency */
+.desktop-testimonial-swiper .swiper-slide {
+  width: 280px;
+  min-height: clamp(180px, 30vh, 220px);
+  height: auto;
+}
+
+.desktop-testimonial-swiper .swiper-pagination {
+  bottom: 0px !important;
+}
+
 .desktop-testimonial-swiper .swiper-button-next,
 .desktop-testimonial-swiper .swiper-button-prev {
   color: #ffffff;
@@ -40,6 +56,7 @@
   font-size: 18px;
   font-weight: bold;
 }
+
 
 .desktop-testimonial-swiper .swiper-button-next:hover,
 .desktop-testimonial-swiper .swiper-button-prev:hover {

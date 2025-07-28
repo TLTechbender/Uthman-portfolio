@@ -5,6 +5,7 @@ import {
 
   EffectCoverflow,
   EffectFlip,
+  Keyboard,
   Navigation,
   Pagination,
 } from "swiper/modules";
@@ -82,13 +83,15 @@ const TestimoniesSwiper: React.FC<{ testimonies: Testimonial[] }> = ({
     <>
       {/* Desktop Version */}
       <div className="hidden md:block relative">
-     
         <Swiper
           effect={"flip"}
           grabCursor={true}
           pagination={true}
           navigation={true}
-          modules={[EffectFlip, Pagination, Navigation]}
+          keyboard={{
+            enabled: true,
+          }}
+          modules={[EffectFlip,Keyboard, Pagination, Navigation]}
           className="desktop-testimonial-swiper max-w-2xl"
         >
           {testimonies.map((testimony, index) => (
@@ -101,8 +104,6 @@ const TestimoniesSwiper: React.FC<{ testimonies: Testimonial[] }> = ({
 
       {/* Mobile Version */}
       <div className="md:hidden px-4">
-     
-
         <Swiper
           effect={"coverflow"}
           grabCursor={true}
