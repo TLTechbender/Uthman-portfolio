@@ -40,6 +40,10 @@ const Nav: React.FC<NavProps> = ({ navbar }) => {
     };
   }, []);
 
+
+  //todo, that nav is funny on some short screens man
+  //todo, disable scrolling on mobile popups shwoing man
+  
   const navItems = [
     { name: "Home", href: "/", badgeText: "H" },
     { name: "About Us", href: "/about", badgeText: "A" },
