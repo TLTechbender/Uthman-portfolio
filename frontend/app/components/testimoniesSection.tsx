@@ -1,12 +1,20 @@
 import React from "react";
 import { motion } from "framer-motion";
 import { Swiper, SwiperSlide } from "swiper/react";
-import { EffectCards, Mousewheel, Pagination } from "swiper/modules";
-import { FaStar } from "react-icons/fa6";
+import {
 
+  EffectCoverflow,
+  EffectFlip,
+  Navigation,
+  Pagination,
+} from "swiper/modules";
+import { FaStar } from "react-icons/fa6";
+import '../assets/styles/swiperStyles.css';
 import "swiper/css";
+import "swiper/css/effect-flip";
+import "swiper/css/navigation";
+import "swiper/css/effect-coverflow";
 import "swiper/css/pagination";
-import "swiper/css/effect-cards";
 import WireframeSixBackground from "./effects/wireframeSixBackground";
 import WireframeSixGreenShapesBackground from "./effects/wireframeSixGreenShapesBackground";
 import type { Testimonial } from "~/sanity/interfaces/homepage";
@@ -36,7 +44,6 @@ const TestimonialCard: React.FC<{ testimony: Testimonial }> = ({
 
   // Get avatar URL, fallback to a default avatar if not provided
   const avatarUrl = testimony.avatar?.asset?.url;
-
   const avatarAlt = testimony.avatar?.alt || `${testimony.name} avatar`;
 
   return (
@@ -74,27 +81,15 @@ const TestimoniesSwiper: React.FC<{ testimonies: Testimonial[] }> = ({
   return (
     <>
       {/* Desktop Version */}
-      <div className="hidden md:block">
+      <div className="hidden md:block relative">
+     
         <Swiper
-          direction="vertical"
-          slidesPerView={1}
-          spaceBetween={20}
-          mousewheel={{
-            releaseOnEdges: true,
-            sensitivity: 0.05,
-            thresholdDelta: 50,
-          }}
-          pagination={{
-            clickable: true,
-          }}
-          modules={[Mousewheel, Pagination]}
-          className="h-[280px] w-full"
-          style={
-            {
-              "--swiper-pagination-color": "#fbbf24",
-              "--swiper-pagination-bullet-inactive-color": "#6b7280",
-            } as React.CSSProperties
-          }
+          effect={"flip"}
+          grabCursor={true}
+          pagination={true}
+          navigation={true}
+          modules={[EffectFlip, Pagination, Navigation]}
+          className="desktop-testimonial-swiper max-w-2xl"
         >
           {testimonies.map((testimony, index) => (
             <SwiperSlide key={`desktop-${index}`}>
@@ -105,21 +100,28 @@ const TestimoniesSwiper: React.FC<{ testimonies: Testimonial[] }> = ({
       </div>
 
       {/* Mobile Version */}
-      <div className="md:hidden">
+      <div className="md:hidden px-4">
+     
+
         <Swiper
-          effect="cards"
+          effect={"coverflow"}
           grabCursor={true}
-          modules={[EffectCards]}
-          className="w-full max-w-xs mx-auto h-[280px]"
-          cardsEffect={{
-            rotate: true,
-            perSlideRotate: 4,
-            perSlideOffset: 6,
-            slideShadows: false,
+          centeredSlides={true}
+          slidesPerView={"auto"}
+          spaceBetween={10}
+          coverflowEffect={{
+            rotate: 50,
+            stretch: 0,
+            depth: 100,
+            modifier: 1,
+            slideShadows: true,
           }}
+          pagination={true}
+          modules={[EffectCoverflow, Pagination]}
+          className="mobile-testimonial-swiper"
         >
           {testimonies.map((testimony, index) => (
-            <SwiperSlide key={`mobile-${index}`} className="bg-transparent">
+            <SwiperSlide key={`mobile-${index}`}>
               <TestimonialCard testimony={testimony} />
             </SwiperSlide>
           ))}
@@ -170,6 +172,7 @@ const TestimoniesSection: React.FC<TestimoniesProps> = ({
           initial={{ opacity: 0, y: 50 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, delay: 0.4 }}
+          className="px-4 md:px-8" // Minimal padding - arrows close to cards
         >
           <TestimoniesSwiper testimonies={testimonies} />
         </motion.div>
