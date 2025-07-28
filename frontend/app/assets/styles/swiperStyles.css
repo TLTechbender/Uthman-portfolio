@@ -2,15 +2,15 @@
   padding: 50px 0 70px 0;
   overflow: visible;
 }
-
-
-//hacking this for consistency
 .mobile-testimonial-swiper .swiper-slide {
   width: 280px;
   min-height: clamp(240px, 40vh, 280px);
   height: auto;
 }
 
+.mobile-testimonial-swiper .swiper-pagination {
+  bottom: 0px !important;
+}
 
 .mobile-testimonial-swiper .swiper-pagination-bullet {
   background: rgba(255, 255, 255, 0.5);
