@@ -2,6 +2,8 @@
   padding: 50px 0 70px 0;
   overflow: visible;
 }
+
+//hacking both of these for consistency
 .mobile-testimonial-swiper .swiper-slide {
   width: 280px;
   min-height: clamp(240px, 40vh, 280px);
