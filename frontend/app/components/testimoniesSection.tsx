@@ -1,8 +1,7 @@
-import React from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { motion } from "framer-motion";
 import { Swiper, SwiperSlide } from "swiper/react";
 import {
-
   EffectCoverflow,
   EffectFlip,
   Keyboard,
@@ -10,7 +9,7 @@ import {
   Pagination,
 } from "swiper/modules";
 import { FaStar } from "react-icons/fa6";
-import '../assets/styles/swiperStyles.css';
+import "../assets/styles/swiperStyles.css";
 import "swiper/css";
 import "swiper/css/effect-flip";
 import "swiper/css/navigation";
@@ -24,19 +23,72 @@ interface TestimoniesProps {
   testimoninesData?: Testimonial[];
 }
 
-const TestimonialCard: React.FC<{ testimony: Testimonial }> = ({
+// Scroll tracking hook - same as your Beyond Portfolio
+const useScrollTracking = (delay: number = 0) => {
+  const [scrollProgress, setScrollProgress] = useState(0);
+  const [isVisible, setIsVisible] = useState(false);
+  const elementRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      if (!elementRef.current) return;
+
+      const rect = elementRef.current.getBoundingClientRect();
+      const windowHeight = window.innerHeight;
+
+      // Calculate how much of the element is visible
+      const visibleTop = Math.max(
+        0,
+        Math.min(rect.height, windowHeight - rect.top)
+      );
+      const visibleBottom = Math.max(0, Math.min(rect.height, rect.bottom));
+      const visibleHeight = Math.min(visibleTop, visibleBottom);
+
+      const progress = Math.min(1, Math.max(0, visibleHeight / rect.height));
+      setScrollProgress(progress);
+      setIsVisible(progress > 0.1);
+    };
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        setIsVisible(entry.isIntersecting);
+      },
+      {
+        threshold: 0.1,
+        rootMargin: "50px 0px -50px 0px",
+      }
+    );
+
+    if (elementRef.current) {
+      observer.observe(elementRef.current);
+    }
+
+    handleScroll();
+    window.addEventListener("scroll", handleScroll, { passive: true });
+
+    return () => {
+      window.removeEventListener("scroll", handleScroll);
+      observer.disconnect();
+    };
+  }, []);
+
+  return { elementRef, scrollProgress, isVisible };
+};
+
+const TestimonialCard: React.FC<{ testimony: Testimonial; index: number }> = ({
   testimony,
+  index,
 }) => {
   const clampedRating = Math.max(1, Math.min(5, testimony.rating));
 
   const renderStars = () => {
-    return Array.from({ length: 5 }, (_, index) => {
-      const starNumber = index + 1;
+    return Array.from({ length: 5 }, (_, starIndex) => {
+      const starNumber = starIndex + 1;
       const isGold = starNumber <= clampedRating;
 
       return (
         <FaStar
-          key={index}
+          key={starIndex}
           className={`text-lg ${isGold ? "text-yellow-400" : "text-gray-400"}`}
         />
       );
@@ -48,7 +100,16 @@ const TestimonialCard: React.FC<{ testimony: Testimonial }> = ({
   const avatarAlt = testimony.avatar?.alt || `${testimony.name} avatar`;
 
   return (
-    <div className="max-w-lg mx-auto bg-gray-900/90 backdrop-blur-sm text-white p-5 rounded-lg border border-gray-700 shadow-2xl">
+    <motion.div
+      className="max-w-lg mx-auto bg-gray-900/90 backdrop-blur-sm text-white p-5 rounded-lg border border-gray-700 shadow-2xl"
+      initial={{ opacity: 0, scale: 0.9 }}
+      animate={{ opacity: 1, scale: 1 }}
+      transition={{
+        duration: 0.5,
+        delay: index * 0.1,
+        ease: "easeOut",
+      }}
+    >
       <div className="flex items-center mb-4">
         <img
           src={avatarUrl}
@@ -72,61 +133,80 @@ const TestimonialCard: React.FC<{ testimony: Testimonial }> = ({
       >
         {renderStars()}
       </div>
-    </div>
+    </motion.div>
   );
 };
 
-const TestimoniesSwiper: React.FC<{ testimonies: Testimonial[] }> = ({
-  testimonies,
-}) => {
+const TestimoniesSwiper: React.FC<{
+  testimonies: Testimonial[];
+  scrollProgress: number;
+}> = ({ testimonies, scrollProgress }) => {
   return (
     <>
       {/* Desktop Version */}
       <div className="hidden md:block relative">
-        <Swiper
-          effect={"flip"}
-          grabCursor={true}
-          pagination={true}
-          navigation={true}
-          keyboard={{
-            enabled: true,
+        <motion.div
+          animate={{
+            opacity: Math.min(1, scrollProgress * 1.3),
+            scale: 0.95 + scrollProgress * 0.05,
+            y: (1 - scrollProgress) * 30,
           }}
-          modules={[EffectFlip,Keyboard, Pagination, Navigation]}
-          className="desktop-testimonial-swiper max-w-2xl"
+          transition={{ duration: 0.3, ease: "easeOut" }}
         >
-          {testimonies.map((testimony, index) => (
-            <SwiperSlide key={`desktop-${index}`}>
-              <TestimonialCard testimony={testimony} />
-            </SwiperSlide>
-          ))}
-        </Swiper>
+          <Swiper
+            effect={"flip"}
+            grabCursor={true}
+            pagination={true}
+            navigation={true}
+            keyboard={{
+              enabled: true,
+            }}
+            modules={[EffectFlip, Keyboard, Pagination, Navigation]}
+            className="desktop-testimonial-swiper max-w-2xl"
+          >
+            {testimonies.map((testimony, index) => (
+              <SwiperSlide key={`desktop-${index}`}>
+                <TestimonialCard testimony={testimony} index={index} />
+              </SwiperSlide>
+            ))}
+          </Swiper>
+        </motion.div>
       </div>
 
       {/* Mobile Version */}
       <div className="md:hidden px-4">
-        <Swiper
-          effect={"coverflow"}
-          grabCursor={true}
-          centeredSlides={true}
-          slidesPerView={"auto"}
-          spaceBetween={10}
-          coverflowEffect={{
-            rotate: 50,
-            stretch: 0,
-            depth: 100,
-            modifier: 1,
-            slideShadows: true,
+        <motion.div
+          animate={{
+            opacity: Math.min(1, scrollProgress * 1.3),
+            scale: 0.95 + scrollProgress * 0.05,
+            y: (1 - scrollProgress) * 30,
           }}
-          pagination={true}
-          modules={[EffectCoverflow, Pagination]}
-          className="mobile-testimonial-swiper"
+          transition={{ duration: 0.3, ease: "easeOut" }}
         >
-          {testimonies.map((testimony, index) => (
-            <SwiperSlide key={`mobile-${index}`}>
-              <TestimonialCard testimony={testimony} />
-            </SwiperSlide>
-          ))}
-        </Swiper>
+          <Swiper
+            effect={"coverflow"}
+            grabCursor={true}
+            centeredSlides={true}
+            slidesPerView={"auto"}
+            spaceBetween={10}
+            coverflowEffect={{
+              rotate: 50,
+              stretch: 0,
+              depth: 100,
+              modifier: 1,
+              slideShadows: true,
+            }}
+            pagination={true}
+            modules={[EffectCoverflow, Pagination]}
+            className="mobile-testimonial-swiper"
+          >
+            {testimonies.map((testimony, index) => (
+              <SwiperSlide key={`mobile-${index}`}>
+                <TestimonialCard testimony={testimony} index={index} />
+              </SwiperSlide>
+            ))}
+          </Swiper>
+        </motion.div>
       </div>
     </>
   );
@@ -137,29 +217,38 @@ const TestimoniesSection: React.FC<TestimoniesProps> = ({
 }) => {
   const testimonies = testimoninesData;
 
+  // Use the scroll tracking hook
+  const { elementRef, scrollProgress, isVisible } = useScrollTracking();
+
   // Don't render if no testimonies available
   if (!testimonies || testimonies.length === 0) {
     return null;
   }
 
   return (
-    <div className="relative py-8 overflow-hidden">
+    <div ref={elementRef} className="relative py-36 overflow-hidden">
+      {/* Background with scroll-based fade */}
       <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ duration: 1.5 }}
+        animate={{
+          opacity: Math.min(1, scrollProgress * 1.2),
+        }}
+        transition={{ duration: 0.5, ease: "easeOut" }}
         className="absolute inset-0"
       >
-        <WireframeSixBackground />
+        <WireframeSixBackground/>
         <WireframeSixGreenShapesBackground />
       </motion.div>
 
       <div className="relative z-10">
+        {/* Header with scroll-based animation */}
         <motion.div
           className="mb-8 text-center"
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 0.2 }}
+          animate={{
+            opacity: Math.min(1, scrollProgress * 1.4),
+            y: (1 - scrollProgress) * 40,
+            scale: 0.95 + scrollProgress * 0.05,
+          }}
+          transition={{ duration: 0.4, ease: "easeOut" }}
         >
           <h3 className="text-[#FFFFFF99] text-lg capitalize mb-2">
             testimonies
@@ -169,15 +258,32 @@ const TestimoniesSection: React.FC<TestimoniesProps> = ({
           </h2>
         </motion.div>
 
-        <motion.div
-          initial={{ opacity: 0, y: 50 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 0.4 }}
-          className="px-4 md:px-8" // Minimal padding - arrows close to cards
-        >
-          <TestimoniesSwiper testimonies={testimonies} />
-        </motion.div>
+        {/* Swiper with scroll-based animation */}
+        <div className="px-4 md:px-8">
+          <TestimoniesSwiper
+            testimonies={testimonies}
+            scrollProgress={scrollProgress}
+          />
+        </div>
       </div>
+
+      {/* Optional: Add a subtle glow effect that appears with scroll */}
+      <motion.div
+        className="absolute inset-0 pointer-events-none"
+        animate={{
+          opacity: scrollProgress > 0.3 ? scrollProgress * 0.2 : 0,
+        }}
+        transition={{ duration: 0.6, ease: "easeOut" }}
+        style={{
+          background: `
+            radial-gradient(circle at 50% 50%, 
+              rgba(34, 197, 94, ${scrollProgress * 0.1}) 0%,
+              rgba(6, 182, 212, ${scrollProgress * 0.05}) 40%,
+              transparent 70%
+            )
+          `,
+        }}
+      />
     </div>
   );
 };

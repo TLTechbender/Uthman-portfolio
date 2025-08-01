@@ -24,6 +24,7 @@ export const siteSettingsQuery = `*[_type == "siteSettings"][0]{
       platform,
       url,
       isEnabled
-    }
+    },
+    email
   }
 }`;

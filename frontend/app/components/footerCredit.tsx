@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { motion, type Variants } from "framer-motion";
 
-const FooterCredit = () => {
+const FooterCredit:React.FC = () => {
   const [isHovered, setIsHovered] = useState(false);
   const [hoveredTech, setHoveredTech] = useState<number | null>(null);
 

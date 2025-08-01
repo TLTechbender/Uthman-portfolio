@@ -10,38 +10,70 @@ import { urlFor } from "~/sanity/sanityClient";
 import Footer from "./footer";
 
 export async function loader(): Promise<{ siteSettings: SiteSettings }> {
-  console.log("🔍 Loader running...");
+
 
   const siteSettings = await fetchSiteSettings();
 
   return { siteSettings };
 }
+
 export function meta({ data }: Route.MetaArgs) {
-  if (!data?.siteSettings?.navbar?.logo?.asset) {
-    return [];
+  if (!data) return;
+
+  try {
+    const assetId = data.siteSettings.navbar.logo.asset._id;
+
+    const favicon16 = urlFor(assetId).width(16).height(16).format("png").url();
+    const favicon32 = urlFor(assetId).width(32).height(32).format("png").url();
+    const favicon48 = urlFor(assetId).width(48).height(48).format("png").url();
+    const appleTouchIcon = urlFor(assetId)
+      .width(180)
+      .height(180)
+      .format("png")
+      .url();
+
+    const faviconMeta = [
+      {
+        tagName: "link",
+        rel: "icon",
+        type: "image/png",
+        sizes: "16x16",
+        href: `${favicon16}`,
+      },
+      {
+        tagName: "link",
+        rel: "icon",
+        type: "image/png",
+        sizes: "32x32",
+        href: `${favicon32}`,
+      },
+      {
+        tagName: "link",
+        rel: "icon",
+        type: "image/png",
+        sizes: "48x48",
+        href: `${favicon48}`,
+      },
+      {
+        tagName: "link",
+        rel: "apple-touch-icon",
+        sizes: "180x180",
+        href: `${appleTouchIcon}`,
+      },
+
+      {
+        tagName: "link",
+        rel: "shortcut icon",
+        href: `${favicon32}`,
+      },
+    ];
+
+    return [...faviconMeta];
+  } catch (error) {
+ 
+
+    return;
   }
-
-  const faviconUrl = urlFor(data.siteSettings.navbar.logo.asset._id)
-    .width(48)
-    .height(48)
-    .format("png")
-    .url();
-
-  return [
-    {
-      tagName: "link",
-      rel: "icon",
-      type: "image/png",
-      sizes: "48x48",
-      href: faviconUrl,
-    },
-    {
-      tagName: "link",
-      rel: "apple-touch-icon",
-      sizes: "48x48",
-      href: faviconUrl,
-    },
-  ];
 }
 
 const Layout: React.FC<Route.ComponentProps> = ({ loaderData }) => {

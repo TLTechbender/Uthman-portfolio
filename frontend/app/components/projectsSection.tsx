@@ -1,11 +1,17 @@
-import { div } from "framer-motion/client";
-import SportaAICard from "./effects/projectCard";
 import AnimatedGradientProjectsSection from "./effects/animatedGradientProjectsSection";
 import ProjectCard from "./effects/projectCard";
+import type { PortfolioPageContentData } from "~/sanity/interfaces/portfolioPage";
+import { urlFor } from "~/sanity/sanityClient";
+import { Link } from "react-router";
+import { FaArrowRight } from "react-icons/fa6";
 
-const ProjectsSection = () => {
+interface ProjectsSectionProps {
+  content: PortfolioPageContentData;
+}
+
+const ProjectsSection: React.FC<ProjectsSectionProps> = ({ content }) => {
   return (
-    <div className="w-full relative h-full">
+    <div className=" relative font-arial ">
       {/* Background layer - lowest z-index */}
       <AnimatedGradientProjectsSection />
 
@@ -23,14 +29,46 @@ const ProjectsSection = () => {
 
         {/* Project Card Container */}
         <div className="relative mb-8 sm:mb-10 lg:mb-12">
-          <ProjectCard />
+          {content.portfolioProjects.map((project, i) => (
+            <ProjectCard
+              key={i}
+              title={project.projectName}
+              //I have alwasy found typing sanity image assets tricky up until this day nigga
+              previewImage={urlFor(project.projectImage.asset._id)
+                .quality(100)
+                .format("webp")
+                .url()}
+              shortDescription={project.shortDescription}
+              buttonLink={project.projectLink.url}
+              buttonText={project.projectLink.text}
+            />
+          ))}
         </div>
 
-        {/* Call-to-Action Button */}
         <div className="w-full flex justify-center px-4 sm:px-0">
-          <button className="px-4 sm:px-6 py-3 sm:py-4 bg-[#0FB492] hover:bg-teal-500 text-white text-sm sm:text-base font-semibold w-fit mx-auto rounded-lg sm:rounded-xl animate-pulse hover:animate-none transition-all duration-300 shadow-lg hover:shadow-teal-500/25 focus:outline-none focus:ring-2 focus:ring-teal-500 min-w-[120px] active:scale-95">
-            view more
-          </button>
+          <Link
+            to={"/portfolio"}
+            className={`
+                        inline-flex items-center gap-3 group relative overflow-hidden
+                        bg-gradient-to-r from-[#0FB492] to-teal-500
+                        hover:from-teal-500 hover:to-emerald-500
+                        text-black hover:text-white font-semibold
+                        px-6 py-3 rounded-xl shadow-lg
+                        transition-all duration-300 ease-out
+                        transform hover:scale-105 hover:shadow-teal-500/25
+                        focus:outline-none focus:ring-2 focus:ring-teal-500
+                       
+                      `}
+            style={{
+              transition: "all 0.3s ease-out",
+              transitionDelay: "300ms",
+            }}
+          >
+            <span className="relative z-10">view more</span>
+            <FaArrowRight className="w-4 h-4 relative z-10 transition-transform duration-300 ease-out -rotate-45 group-hover:rotate-0" />
+
+            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/80 to-transparent opacity-0 group-hover:opacity-100 transform -skew-x-12 -translate-x-full group-hover:translate-x-full transition-all duration-700 ease-out" />
+          </Link>
         </div>
       </div>
     </div>

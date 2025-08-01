@@ -1,15 +1,11 @@
 @import "tailwindcss";
 
-@theme {
-  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif,
-    "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+font-arial {
+  font-family: Arial, Helvetica, sans-serif;
 }
 
-html,
-body {
-  @apply bg-white dark:bg-gray-950;
+font-charmonman {
+  font-family: "Charmonman", cursive;
 
-  @media (prefers-color-scheme: dark) {
-    color-scheme: dark;
-  }
+  font-style: normal;
 }

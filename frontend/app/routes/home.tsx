@@ -6,49 +6,76 @@ import BeyondPortfolioSection from "~/components/beyondPortfolioSection";
 import TestimoniesSection from "~/components/testimoniesSection";
 import BillingSection from "~/components/billingSection";
 
+import { useMotionValueEvent, useScroll } from "framer-motion";
+
 import type {
   HomepageContentData,
   HomepageSeoData,
 } from "~/sanity/interfaces/homepage";
 import { sanityFetchWrapper } from "~/sanity/sanityCRUDHandlers";
-import { homepageSeoQuery } from "~/sanity/queries/homePage";
+import {
+  homepageSeoQuery,
+  portfolioPageContentQueryForHomePage,
+} from "~/sanity/queries/homePage";
 import { fetchHomepageContentData } from "~/hooks/fetchHomepageData";
 import { useLoaderData } from "react-router";
+import { useRef } from "react";
+import type { PortfolioPageContentData } from "~/sanity/interfaces/portfolioPage";
 
 // Loader now fetches both SEO and content data
 export async function loader(): Promise<{
   homePageContentData: HomepageContentData;
   seoData: HomepageSeoData;
+  portfolioPageContentDataForHomepage: PortfolioPageContentData;
 }> {
-  console.log("🔍 Loader running...");
+
 
   try {
     // Fetch both SEO and content data in parallel
-    const [homePageContentData, seoData] = await Promise.all([
-      fetchHomepageContentData(),
-      sanityFetchWrapper<HomepageSeoData>(homepageSeoQuery),
-    ]);
+    const [homePageContentData, seoData, portfolioPageContentDataForHomepage] =
+      await Promise.all([
+        fetchHomepageContentData(),
+        sanityFetchWrapper<HomepageSeoData>(homepageSeoQuery),
+        sanityFetchWrapper<PortfolioPageContentData>(
+          portfolioPageContentQueryForHomePage
+        ),
+      ]);
 
-    return { homePageContentData, seoData };
+    return {
+      homePageContentData,
+      seoData,
+      portfolioPageContentDataForHomepage,
+    };
   } catch (error) {
-    console.error("Failed to fetch data:", error);
 
-    // Return content data and fallback SEO data
-    const homePageContentData = await fetchHomepageContentData();
+
+    // Fetch the data that we can still get, and provide fallback for SEO only
+    const [homePageContentData, portfolioPageContentDataForHomepage] =
+      await Promise.all([
+        fetchHomepageContentData(),
+        sanityFetchWrapper<PortfolioPageContentData>(
+          portfolioPageContentQueryForHomePage
+        ),
+      ]);
+
     const fallbackSeoData: HomepageSeoData = {
       _id: "",
       _type: "homepage",
       seo: {
-        title: "Portfolio - Bolarinwa Paul Ayomide",
+        title: "Portfolio - Suarau Uthman Ololoade",
         description: "Welcome to my portfolio!",
       },
     };
 
-    return { homePageContentData, seoData: fallbackSeoData };
+    return {
+      homePageContentData,
+      seoData: fallbackSeoData,
+      portfolioPageContentDataForHomepage,
+    };
   }
 }
 
-// Meta function using loader data (synchronous)
+
 export function meta({ data }: Route.MetaArgs) {
   if (!data?.seoData?.seo) {
     // Fallback meta tags if no SEO data
@@ -140,17 +167,25 @@ export function meta({ data }: Route.MetaArgs) {
 }
 
 export default function Home() {
-  const { homePageContentData } = useLoaderData<typeof loader>();
+  const { homePageContentData, portfolioPageContentDataForHomepage } =
+    useLoaderData<typeof loader>();
 
-  console.log("📄 Home page content data in component:", homePageContentData);
+  const targetScrollContainer = useRef<HTMLElement | null>(null);
+
+  //Shoutout to the the yt
+  const { scrollY } = useScroll({
+    target: targetScrollContainer,
+    offset: ["start start", "end end"],
+  });
+
 
   return (
-    <main className="flex flex-col">
+    <main ref={targetScrollContainer} className="flex flex-col">
       <>
         <HeroSection hero={homePageContentData.hero} />
       </>
       <>
-        <ProjectsSection />
+        <ProjectsSection content={portfolioPageContentDataForHomepage} />
       </>
       <>
         <ExperienceTimeline experiences={homePageContentData.experiences} />

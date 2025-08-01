@@ -1,22 +1,86 @@
 import React, { useEffect, useRef, useState } from "react";
-import { motion, AnimatePresence, type Variants } from "framer-motion";
+import {
+  motion,
+  AnimatePresence,
+  type Variants,
+  useScroll,
+  useTransform,
+  useInView,
+} from "framer-motion";
 import type { BeyondPortfolio } from "~/sanity/interfaces/homepage";
 import { PortableText } from "@portabletext/react";
 import { createPortal } from "react-dom";
+import weridShape from "../assets/images/weirdShape.svg";
+import { urlFor } from "~/sanity/sanityClient";
 
-// Animation variants
-const cardVariants = {
-  hidden: { opacity: 0, y: 20 },
-  visible: { opacity: 1, y: 0 },
-  hover: { scale: 1.02, transition: { duration: 0.2 } },
-};
+//Sincerely this has balloned out of control but I don't see myself breaking it further into separate files bro
 
-// Utility function to get image URL from Sanity image
-const getImageUrl = (image: any): string => {
-  if (!image?.asset?.url) {
-    return "/placeholder-image.jpg"; // Fallback image
+// Animation variants for different entrance animations
+const getCardVariants = (animationType: string, delay: number = 0) => {
+  // Base variants structure
+  let hiddenVariant: any = { opacity: 0 };
+  let visibleVariant: any = {
+    opacity: 1,
+    transition: {
+      duration: 0.6,
+      delay: delay / 1000,
+      ease: [0.4, 0, 0.2, 1] as any,
+    },
+  };
+
+  // Add specific transforms based on animation type
+  switch (animationType) {
+    case "slideLeft":
+      hiddenVariant = { ...hiddenVariant, x: -60, y: 20 };
+      visibleVariant = {
+        ...visibleVariant,
+        x: 0,
+        y: 0,
+        scale: 1,
+      };
+      break;
+    case "slideRight":
+      hiddenVariant = { ...hiddenVariant, x: 60, y: 20 };
+      visibleVariant = {
+        ...visibleVariant,
+        x: 0,
+        y: 0,
+        scale: 1,
+      };
+      break;
+    case "scaleIn":
+      hiddenVariant = { ...hiddenVariant, scale: 0.85, y: 30 };
+      visibleVariant = {
+        ...visibleVariant,
+        scale: 1,
+        y: 0,
+      };
+      break;
+    case "fadeIn":
+      hiddenVariant = { ...hiddenVariant, y: 15 };
+      visibleVariant = {
+        ...visibleVariant,
+        y: 0,
+      };
+      break;
+    default: // slideUp
+      hiddenVariant = { ...hiddenVariant, y: 40 };
+      visibleVariant = {
+        ...visibleVariant,
+        y: 0,
+        scale: 1,
+      };
+      break;
   }
-  return image.asset.url;
+
+  return {
+    hidden: hiddenVariant,
+    visible: visibleVariant,
+    hover: {
+      scale: 1.02,
+      transition: { duration: 0.3, ease: "easeOut" as any },
+    },
+  } as any;
 };
 
 // Type definitions for component props
@@ -44,6 +108,8 @@ interface CardProps {
   children: React.ReactNode;
   className?: string;
   popup?: PopupData;
+  scrollDelay?: number;
+  animationType?: "slideUp" | "slideLeft" | "slideRight" | "scaleIn" | "fadeIn";
 }
 
 interface CurrentlyReadingProps {
@@ -130,7 +196,7 @@ const portableTextComponents = {
       <em className="italic text-cyan-200">{children}</em>
     ),
     code: ({ children }: any) => (
-      <code className="bg-gray-800/50 px-1.5 py-0.5 rounded text-xs font-mono text-cyan-300 border border-cyan-400/20">
+      <code className="bg-gray-800/50 px-1.5 py-0.5 rounded text-xs font-arial text-cyan-300 border border-cyan-400/20">
         {children}
       </code>
     ),
@@ -162,7 +228,7 @@ const portableTextComponents = {
     ),
     number: ({ children, index }: any) => (
       <li className="text-sm text-gray-300 flex items-start">
-        <span className="text-cyan-400 mr-2 mt-0.5 text-xs font-mono">
+        <span className="text-cyan-400 mr-2 mt-0.5 text-xs font-arial">
           {(index || 0) + 1}.
         </span>
         <span>{children}</span>
@@ -172,18 +238,14 @@ const portableTextComponents = {
   types: {
     code: ({ value }: any) => (
       <pre className="bg-gray-800/50 border border-cyan-400/20 rounded-lg p-3 mb-3 overflow-x-auto">
-        <code className="text-xs font-mono text-cyan-300">{value?.code}</code>
+        <code className="text-xs font-arial text-cyan-300">{value?.code}</code>
       </pre>
     ),
   },
 };
 
 // ================== POPUP COMPONENTS ==================
-const PopupPortal: React.FC<PopupPortalProps> = ({
-  popup,
-  mousePosition,
-  onClose,
-}) => {
+const PopupPortal: React.FC<PopupPortalProps> = ({ popup, mousePosition }) => {
   const popupContent = (
     <motion.div
       variants={popupVariants}
@@ -251,8 +313,14 @@ const MobilePopup: React.FC<MobilePopupProps> = ({ popup, onClose }) => {
   return createPortal(popupContent, document.body);
 };
 
-// ================== CARD COMPONENT ==================
-const Card: React.FC<CardProps> = ({ children, className = "", popup }) => {
+// ================== ENHANCED CARD COMPONENT ==================
+const Card: React.FC<CardProps> = ({
+  children,
+  className = "",
+  popup,
+  scrollDelay = 0,
+  animationType = "slideUp",
+}) => {
   const [isHovered, setIsHovered] = useState(false);
   const [isPopupOpen, setIsPopupOpen] = useState(false);
   const [mousePosition, setMousePosition] = useState<MousePosition>({
@@ -260,7 +328,31 @@ const Card: React.FC<CardProps> = ({ children, className = "", popup }) => {
     y: 0,
   });
   const [isMobile, setIsMobile] = useState(false);
+
+  // Framer Motion refs and scroll tracking
   const cardRef = useRef<HTMLDivElement>(null);
+  const isInView = useInView(cardRef, {
+    once: false,
+    margin: "-10% 0px -10% 0px",
+  });
+
+  const { scrollYProgress } = useScroll({
+    target: cardRef,
+    offset: ["start end", "end start"],
+  });
+
+  // Transform scroll progress into useful values
+  const opacity = useTransform(
+    scrollYProgress,
+    [0, 0.3, 0.7, 1],
+    [0.8, 1, 1, 0.8]
+  );
+  const scale = useTransform(
+    scrollYProgress,
+    [0, 0.3, 0.7, 1],
+    [0.95, 1, 1, 0.95]
+  );
+  const brightness = useTransform(scrollYProgress, [0, 0.5, 1], [0.9, 1, 0.9]);
 
   useEffect(() => {
     const checkMobile = () => {
@@ -294,21 +386,50 @@ const Card: React.FC<CardProps> = ({ children, className = "", popup }) => {
     }
   };
 
+  // Get dynamic variants
+  const cardVariants = getCardVariants(animationType, scrollDelay);
+
   return (
     <motion.div
       ref={cardRef}
       variants={cardVariants}
       initial="hidden"
-      animate="visible"
+      animate={isInView ? "visible" : "hidden"}
       whileHover="hover"
-      className={`relative border border-cyan-400/20 rounded-2xl overflow-hidden ${
+      className={`relative border border-cyan-400/20 rounded-2xl overflow-hidden font-arial ${
         popup ? "cursor-pointer" : ""
       } ${className}`}
       onMouseMove={handleMouseMove}
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
       onClick={handleClick}
+      style={
+        {
+          opacity,
+          scale,
+          filter: useTransform(brightness, (value) => `brightness(${value})`),
+        } as any
+      }
     >
+      {/* Subtle glow effect based on scroll progress */}
+      <motion.div
+        className="absolute inset-0 rounded-2xl pointer-events-none"
+        style={{
+          opacity: useTransform(
+            scrollYProgress,
+            [0, 0.3, 0.7, 1],
+            [0, 0.3, 0.3, 0]
+          ),
+          background: `
+            radial-gradient(circle at 50% 50%, 
+              rgba(6, 182, 212, 0.1) 0%,
+              rgba(34, 197, 94, 0.05) 40%,
+              transparent 70%
+            )
+          `,
+        }}
+      />
+
       {children}
 
       <AnimatePresence>
@@ -330,50 +451,52 @@ const Card: React.FC<CardProps> = ({ children, className = "", popup }) => {
   );
 };
 
-// Helper function for scattered positioning
-const getScatteredPosition = (index: number, total: number, seed = 12345) => {
-  const random = (s: number): number => {
-    const x = Math.sin(s) * 10000;
-    return x - Math.floor(x);
-  };
-
-  // Much wider spread
-  const x = random(seed + index * 200) * 90 + 20; 
-  const y = random(seed + index * 20) * 85 + 7.5; 
-
-  // Less rotation chaos
-  const rotation = (random(seed + index * 1000) - 0.5) * 30;
-
-  return {
-    left: `${x}%`,
-    top: `${y}%`,
-    transform: `translate(-50%, -50%) rotate(${rotation}deg)`,
-  };
-};
-
 // Left Column Components
-const HeaderSection: React.FC = () => (
-  <motion.div
-    className="mb-6"
-    initial={{ y: -20, opacity: 0 }}
-    animate={{ y: 0, opacity: 1 }}
-    transition={{ delay: 0.2 }}
-  >
-    <p className="text-cyan-400 font-mono text-xs sm:text-sm mb-2">
-      BEYOND PORTFOLIO
-    </p>
-    <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-light italic text-white">
-      Get-to-know-more
-      <br />
-      <span className="block">about me</span>
-    </h1>
-  </motion.div>
-);
+const HeaderSection: React.FC = () => {
+  const headerRef = useRef<HTMLDivElement>(null);
+  const isInView = useInView(headerRef, { once: false });
+
+  const { scrollYProgress } = useScroll({
+    target: headerRef,
+    offset: ["start end", "end start"],
+  });
+
+  const y = useTransform(scrollYProgress, [0, 1], [-20, 20]);
+  const opacity = useTransform(scrollYProgress, [0, 0.3, 0.7, 1], [0, 1, 1, 0]);
+
+  return (
+    <motion.div
+      ref={headerRef}
+      className="mb-6"
+      initial={{ y: -20, opacity: 0 }}
+      animate={isInView ? { y: 0, opacity: 1 } : { y: -20, opacity: 0 }}
+      transition={{
+        duration: 0.6,
+        delay: 0.2,
+        ease: [0.4, 0, 0.2, 1],
+      }}
+      style={{ y, opacity }}
+    >
+      <p className="bg-gradient-to-r from-[#20CBA8] to-[rgba(167,252,238,0.74)] bg-clip-text text-transparent font-arial font-bold italic uppercase leading-[130%] text-base sm:text-xl mb-2">
+        BEYOND PORTFOLIO
+      </p>
+      <h1 className="text-2xl font-charmonman font-normal sm:text-3xl md:text-4xl lg:text-5xl  italic text-white">
+        Get to know more
+        <br />
+        <span className="block">about me</span>
+      </h1>
+    </motion.div>
+  );
+};
 
 const CurrentlyReading: React.FC<CurrentlyReadingProps> = ({ data }) => {
   if (!data) {
     return (
-      <Card className="p-4 h-full bg-gray-900/50">
+      <Card
+        className="p-4 h-full bg-gray-900/50"
+        scrollDelay={100}
+        animationType="slideLeft"
+      >
         <div className="text-gray-400 text-center">
           No reading data available
         </div>
@@ -390,30 +513,99 @@ const CurrentlyReading: React.FC<CurrentlyReadingProps> = ({ data }) => {
     <Card
       className="px-4 pt-4 h-full relative overflow-hidden bg-gray-900/50"
       popup={popup}
+      scrollDelay={100}
+      animationType="slideLeft"
     >
-      {/* Background glow effect */}
-      <div className="absolute inset-0">
-        <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-32 h-32 bg-gradient-to-t from-cyan-400/20 to-green-400/20 blur-3xl rounded-full"></div>
-      </div>
+      <svg
+        viewBox="0 0 342 346"
+        fill="none"
+        xmlns="http://www.w3.org/2000/svg"
+        preserveAspectRatio="xMidYMid slice"
+        className="absolute inset-0 w-full h-full"
+        height={"100%"}
+        width={`100%`}
+      >
+        <g clipPath="url(#clip0_13_823)">
+          <g filter="url(#filter0_f_13_823)">
+            <ellipse
+              cx={171.295}
+              cy={340.142}
+              rx={60.8005}
+              ry={102.778}
+              transform="rotate(-90 171.295 340.142)"
+              fill="url(#paint0_linear_13_823)"
+            />
+          </g>
+        </g>
 
+        <defs>
+          <filter
+            id="filter0_f_13_823"
+            x={-71.2548}
+            y={139.57}
+            width={485.099}
+            height={401.144}
+            filterUnits="userSpaceOnUse"
+            colorInterpolationFilters="sRGB"
+          >
+            <feFlood floodOpacity={0} result="BackgroundImageFix" />
+            <feBlend
+              mode="normal"
+              in="SourceGraphic"
+              in2="BackgroundImageFix"
+              result="shape"
+            />
+            <feGaussianBlur
+              stdDeviation={69.8857}
+              result="effect1_foregroundBlur_13_823"
+            />
+          </filter>
+          <linearGradient
+            id="paint0_linear_13_823"
+            x1={110.494}
+            y1={242.773}
+            x2={249.159}
+            y2={256.793}
+            gradientUnits="userSpaceOnUse"
+          >
+            <stop stopColor="#C6FCA6" />
+            <stop offset={1} stopColor="#A7FCEE" stopOpacity={0.74} />
+          </linearGradient>
+          <linearGradient
+            id="paint1_linear_13_823"
+            x1={-0.00000327091}
+            y1={9.10528}
+            x2={383.046}
+            y2={73.8122}
+            gradientUnits="userSpaceOnUse"
+          >
+            <stop stopColor="#C6FCA6" />
+            <stop offset={1} stopColor="#A7FCEE" stopOpacity={0.74} />
+          </linearGradient>
+          <clipPath id="clip0_13_823">
+            <rect width={342} height={346} rx={17.7102} fill="white" />
+          </clipPath>
+        </defs>
+      </svg>
       <div className="relative z-10 flex flex-col h-full">
-        <div className="flex items-start gap-2 mb-4">
-          <div className="w-6 h-6 bg-cyan-400 rounded-full flex items-center justify-center">
-            <span className="text-gray-900 text-xs">★</span>
-          </div>
+        <div className="flex items-center gap-2 mb-4">
+          <img src={weridShape} className="w-12 h-12 mt-2" />
           <h2 className="text-lg font-semibold text-white">
             Currently Reading
           </h2>
         </div>
 
-        <p className="text-gray-400 text-sm mb-6">
+        <p className="text-[#FFFFFF80] text-sm mb-6">
           {data.description || "Exploring new knowledge"}
         </p>
 
         <div className="flex-1 flex items-end justify-center overflow-hidden">
           <div className="w-full max-w-xs h-64 overflow-hidden rounded-t-lg shadow-lg">
             <img
-              src={getImageUrl(data.bookImage)}
+              src={urlFor(data.bookImage.asset._id)
+                .format("webp")
+                .quality(80)
+                .url()}
               alt={data.bookImage?.alt || "Current book"}
               className="w-full h-64 object-cover object-top"
             />
@@ -428,7 +620,11 @@ const CurrentlyReading: React.FC<CurrentlyReadingProps> = ({ data }) => {
 const TechStack: React.FC<TechStackProps> = ({ data }) => {
   if (!data || !data.tools?.length) {
     return (
-      <Card className="p-4 h-full bg-gray-900/50">
+      <Card
+        className="p-4 h-full bg-gray-900/50"
+        scrollDelay={200}
+        animationType="scaleIn"
+      >
         <div className="text-gray-400 text-center">
           No tech stack data available
         </div>
@@ -442,31 +638,104 @@ const TechStack: React.FC<TechStackProps> = ({ data }) => {
     : undefined;
 
   return (
-    <Card className="p-4 h-full bg-gray-900/50" popup={popup}>
-      <div className="flex items-start gap-2 mb-4">
-        <div className="w-6 h-6 bg-cyan-400 rounded-full flex items-center justify-center">
-          <span className="text-gray-900 text-xs">+</span>
-        </div>
-        <h2 className="text-lg font-semibold text-white">Tech Stack</h2>
+    <Card
+      className="p-4 h-full bg-gray-900/50"
+      popup={popup}
+      scrollDelay={200}
+      animationType="scaleIn"
+    >
+      <svg
+        viewBox="0 0 342 366"
+        fill="none"
+        xmlns="http://www.w3.org/2000/svg"
+        preserveAspectRatio="xMidYMid slice"
+        className="absolute inset-0 w-full h-full"
+      >
+        <g clipPath="url(#clip0_13_841)">
+          <g filter="url(#filter0_f_13_841)">
+            <ellipse
+              cx={-15.3298}
+              cy={-24.1094}
+              rx={60.8005}
+              ry={102.778}
+              fill="url(#paint0_linear_13_841)"
+            />
+          </g>
+        </g>
+        <defs>
+          <filter
+            id="filter0_f_13_841"
+            x={-215.902}
+            y={-266.659}
+            width={401.144}
+            height={485.099}
+            filterUnits="userSpaceOnUse"
+            colorInterpolationFilters="sRGB"
+          >
+            <feFlood floodOpacity={0} result="BackgroundImageFix" />
+            <feBlend
+              mode="normal"
+              in="SourceGraphic"
+              in2="BackgroundImageFix"
+              result="shape"
+            />
+            <feGaussianBlur
+              stdDeviation={69.8857}
+              result="effect1_foregroundBlur_13_841"
+            />
+          </filter>
+          <linearGradient
+            id="paint0_linear_13_841"
+            x1={-76.1304}
+            y1={-121.478}
+            x2={62.534}
+            y2={-107.459}
+            gradientUnits="userSpaceOnUse"
+          >
+            <stop stopColor="#C6FCA6" />
+            <stop offset={1} stopColor="#A7FCEE" stopOpacity={0.74} />
+          </linearGradient>
+          <clipPath id="clip0_13_841">
+            <rect width={342} height={366} rx={17.7102} fill="white" />
+          </clipPath>
+        </defs>
+      </svg>
+      <div className="flex items-center gap-2 mb-4">
+        <img src={weridShape} className="w-12 h-12 mt-2" />
+        <h2 className="text-lg font-semibold text-white">My Tech Stacks</h2>
       </div>
 
-      <p className="text-gray-400 text-sm mb-6">
+      <p className="text-[#FFFFFF80] text-sm mb-8">
         {data.heading || "Technologies I work with"}
       </p>
 
-      <div className="grid grid-cols-3 gap-3">
+      <div className="grid grid-cols-3 gap-4 items-center">
         {data.tools.map((tool, index) => (
-          <div
+          <motion.div
             key={index}
-            className="bg-gray-800 border border-cyan-400/20 rounded-xl p-3 aspect-square flex items-center justify-center hover:scale-105 transition-transform"
+            className="bg-transparent border mx-auto border-cyan-400/20 rounded-xl w-fit p-[1.5rem] md:p-[1.875rem] lg:p-[2.375rem] flex items-center justify-center"
             title={tool.name || tool.alt}
+            whileHover={{
+              scale: 1.05,
+              transition: { duration: 0.2 },
+            }}
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{
+              opacity: 1,
+              scale: 1,
+              transition: {
+                delay: index * 0.1,
+                duration: 0.3,
+                ease: "easeOut",
+              },
+            }}
           >
             <img
-              src={getImageUrl(tool.logo)}
+              src={urlFor(tool.logo.asset._id).format("webp").quality(80).url()}
               alt={tool.alt || tool.name || `Tool ${index + 1}`}
-              className="w-8 h-8 object-contain"
+              className="w-12 h-12 object-contain"
             />
-          </div>
+          </motion.div>
         ))}
       </div>
     </Card>
@@ -476,7 +745,11 @@ const TechStack: React.FC<TechStackProps> = ({ data }) => {
 const Collaborators: React.FC<CollaboratorsProps> = ({ data }) => {
   if (!data || !data.avatars?.length) {
     return (
-      <Card className="bg-teal-600 p-4 h-full">
+      <Card
+        className="bg-teal-600 p-4 h-full"
+        scrollDelay={300}
+        animationType="slideUp"
+      >
         <div className="text-teal-100 text-center">
           No collaborator data available
         </div>
@@ -490,32 +763,47 @@ const Collaborators: React.FC<CollaboratorsProps> = ({ data }) => {
     : undefined;
 
   return (
-    <Card className="bg-teal-600 p-4 h-full" popup={popup}>
+    <Card
+      className="bg-teal-600 p-4 h-full"
+      popup={popup}
+      scrollDelay={300}
+      animationType="slideUp"
+    >
       <div className="flex flex-col h-full">
         <div className="flex -space-x-2 mb-4">
           {data.avatars.map((collab, index) => (
-            <div
+            <motion.div
               key={index}
               className="w-10 h-10 rounded-full border-2 border-white overflow-hidden"
               title={collab.name || collab.alt}
+              initial={{ scale: 0, opacity: 0 }}
+              animate={{
+                scale: 1,
+                opacity: 1,
+                transition: {
+                  delay: index * 0.1,
+                  duration: 0.3,
+                  ease: "easeOut",
+                },
+              }}
+              whileHover={{
+                scale: 1.1,
+                transition: { duration: 0.2 },
+              }}
             >
               <img
-                src={getImageUrl(collab.avatar)}
+                src={urlFor(collab.avatar.asset._id)
+                  .format("webp")
+                  .quality(80)
+                  .url()}
                 alt={collab.alt || collab.name || `Collaborator ${index + 1}`}
                 className="w-full h-full object-cover"
               />
-            </div>
+            </motion.div>
           ))}
         </div>
 
-        <div className="flex items-start gap-2 mb-2">
-          <div className="w-6 h-6 bg-white rounded-full flex items-center justify-center">
-            <span className="text-teal-600 text-xs">+</span>
-          </div>
-          <h2 className="text-lg font-semibold text-white">Collaborators</h2>
-        </div>
-
-        <p className="text-teal-100 text-sm">
+        <p className="text-[#00000099] text-sm">
           {data.heading || "People I work with"}
         </p>
       </div>
@@ -527,7 +815,11 @@ const Collaborators: React.FC<CollaboratorsProps> = ({ data }) => {
 const RecentWork: React.FC<RecentWorkProps> = ({ data }) => {
   if (!data) {
     return (
-      <Card className="p-4 h-full bg-gray-900/50">
+      <Card
+        className="p-4 h-full bg-gray-900/50"
+        scrollDelay={400}
+        animationType="slideRight"
+      >
         <div className="text-gray-400 text-center">
           No recent work data available
         </div>
@@ -541,11 +833,21 @@ const RecentWork: React.FC<RecentWorkProps> = ({ data }) => {
     : undefined;
 
   return (
-    <Card className="p-0 h-full" popup={popup}>
-      <img
-        src={getImageUrl(data.workImage)}
+    <Card
+      className="p-0 h-full overflow-hidden"
+      popup={popup}
+      scrollDelay={400}
+      animationType="slideRight"
+    >
+      <motion.img
+        src={urlFor(data.workImage.asset._id).format("webp").quality(80).url()}
         alt={data.workImage?.alt || "Recent work"}
         className="w-full h-full object-cover"
+        initial={{ filter: "grayscale(100%)" }}
+        whileHover={{
+          filter: "grayscale(0%)",
+          transition: { duration: 0.3 },
+        }}
       />
     </Card>
   );
@@ -554,7 +856,11 @@ const RecentWork: React.FC<RecentWorkProps> = ({ data }) => {
 const Persona: React.FC<PersonaProps> = ({ data }) => {
   if (!data || !data.personaItems?.length) {
     return (
-      <Card className="p-4 h-full bg-gray-900/50">
+      <Card
+        className="p-4 h-full bg-gray-900/50"
+        scrollDelay={500}
+        animationType="fadeIn"
+      >
         <div className="text-gray-400 text-center">
           No persona data available
         </div>
@@ -568,13 +874,72 @@ const Persona: React.FC<PersonaProps> = ({ data }) => {
     : undefined;
 
   return (
-    <Card className="p-4 h-full bg-gray-900/50" popup={popup}>
+    <Card
+      className="p-4 h-full bg-gray-900/50"
+      popup={popup}
+      scrollDelay={500}
+      animationType="fadeIn"
+    >
+      <svg
+        viewBox="0 0 342 366"
+        fill="none"
+        xmlns="http://www.w3.org/2000/svg"
+        preserveAspectRatio="xMidYMid slice"
+        className="absolute inset-0 w-full h-full"
+      >
+        <g clipPath="url(#clip0_13_841)">
+          <g filter="url(#filter0_f_13_841)">
+            <ellipse
+              cx={-15.3298}
+              cy={-24.1094}
+              rx={60.8005}
+              ry={102.778}
+              fill="url(#paint0_linear_13_841)"
+            />
+          </g>
+        </g>
+        <defs>
+          <filter
+            id="filter0_f_13_841"
+            x={-215.902}
+            y={-266.659}
+            width={401.144}
+            height={485.099}
+            filterUnits="userSpaceOnUse"
+            colorInterpolationFilters="sRGB"
+          >
+            <feFlood floodOpacity={0} result="BackgroundImageFix" />
+            <feBlend
+              mode="normal"
+              in="SourceGraphic"
+              in2="BackgroundImageFix"
+              result="shape"
+            />
+            <feGaussianBlur
+              stdDeviation={69.8857}
+              result="effect1_foregroundBlur_13_841"
+            />
+          </filter>
+          <linearGradient
+            id="paint0_linear_13_841"
+            x1={-76.1304}
+            y1={-121.478}
+            x2={62.534}
+            y2={-107.459}
+            gradientUnits="userSpaceOnUse"
+          >
+            <stop stopColor="#C6FCA6" />
+            <stop offset={1} stopColor="#A7FCEE" stopOpacity={0.74} />
+          </linearGradient>
+          <clipPath id="clip0_13_841">
+            <rect width={342} height={366} rx={17.7102} fill="white" />
+          </clipPath>
+        </defs>
+      </svg>
       <div className="flex flex-col h-full">
-        <div className="flex items-start gap-2 mb-4">
-          <div className="w-6 h-6 bg-cyan-400 rounded-full flex items-center justify-center">
-            <span className="text-gray-900 text-xs">+</span>
-          </div>
-          <h2 className="text-lg font-semibold text-white">Persona</h2>
+        <div className="flex items-center gap-2 mb-4">
+          <img src={weridShape} className="w-12 h-12 mt-2" />
+          <h2 className="text-lg font-semibold text-white">My Persona</h2>
         </div>
 
         <p className="text-gray-400 text-sm mb-6">
@@ -583,29 +948,58 @@ const Persona: React.FC<PersonaProps> = ({ data }) => {
 
         {/* Scattered persona items */}
         <div className="relative flex-1 min-h-[200px]">
-          {data.personaItems.map((item, index) => {
-            const position = getScatteredPosition(
-              index,
-              data.personaItems!.length
-            );
+          <div className="relative flex-1 w-full h-40">
+            {data.personaItems.map((item, index) => {
+              // Some random scatter positions
+              const positions = [
+                { top: "0%", left: "0%", rotate: "-35deg" },
+                { top: "30%", left: "0%", rotate: "-30deg" },
+                { top: "60%", left: "10%", rotate: "-60deg" },
+                { top: "30%", left: "30%", rotate: "-60deg" },
+                { top: "60%", left: "50%", rotate: "-75deg" },
+                { top: "70%", left: "60%", rotate: "-50deg" },
+              ];
 
-            return (
-              <div
-                key={index}
-                className="absolute bg-cyan-400 text-gray-900 px-3 py-1.5 rounded-full text-sm font-medium hover:scale-105 transition-transform whitespace-nowrap"
-                style={position}
-              >
-                {item}
-              </div>
-            );
-          })}
+              const pos = positions[index % positions.length];
+
+              return (
+                <motion.div
+                  key={index}
+                  style={{
+                    position: "absolute",
+                    top: pos.top,
+                    left: pos.left,
+                    rotate: pos.rotate,
+                    background:
+                      "linear-gradient(99.16deg, #4CEBCA 1.14%, #84F5DE 69.47%)",
+                  }}
+                  className="text-[#151515] px-3 py-1.5 rounded-full text-sm font-medium whitespace-nowrap"
+                  initial={{ opacity: 0, scale: 0 }}
+                  animate={{
+                    opacity: 1,
+                    scale: 1,
+                    transition: {
+                      delay: index * 0.15,
+                      duration: 0.4,
+                      ease: "easeOut",
+                    },
+                  }}
+                  whileHover={{
+                    scale: 1.05,
+                    transition: { duration: 0.2 },
+                  }}
+                >
+                  {item}
+                </motion.div>
+              );
+            })}
+          </div>
         </div>
       </div>
     </Card>
   );
 };
 
-// Main Layout Component
 const BeyondPortfolioLayout: React.FC<BeyondPortfolioSectionProps> = ({
   beyondPortfolioData,
 }) => {
@@ -625,7 +1019,7 @@ const BeyondPortfolioLayout: React.FC<BeyondPortfolioSectionProps> = ({
       <div className="max-w-7xl mx-auto">
         {/* Mobile-first responsive grid */}
         <div
-          className="grid gap-4 
+          className="grid gap-3 md:gap-4 lg:gap-6
           grid-cols-1 
           md:grid-cols-[minmax(350px,1fr)_minmax(350px,1fr)] 
           lg:grid-cols-[minmax(350px,1fr)_minmax(350px,1fr)_minmax(350px,1fr)]
@@ -644,7 +1038,7 @@ const BeyondPortfolioLayout: React.FC<BeyondPortfolioSectionProps> = ({
             <div className="flex-1">
               <TechStack data={beyondPortfolioData.techStack} />
             </div>
-            <div className="lg:h-48">
+            <div className="lg:h-28">
               <Collaborators data={beyondPortfolioData.collaborators} />
             </div>
           </div>
@@ -654,7 +1048,7 @@ const BeyondPortfolioLayout: React.FC<BeyondPortfolioSectionProps> = ({
             <div className="flex-1">
               <RecentWork data={beyondPortfolioData.recentWork} />
             </div>
-            <div className="lg:h-64">
+            <div className="">
               <Persona data={beyondPortfolioData.persona} />
             </div>
           </div>
@@ -663,5 +1057,4 @@ const BeyondPortfolioLayout: React.FC<BeyondPortfolioSectionProps> = ({
     </div>
   );
 };
-
 export default BeyondPortfolioLayout;

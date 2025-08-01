@@ -1,9 +1,9 @@
 //Shapes gladly provided by ai
 
-const WireframeSixGreenShapesBackground = () => {
+const WireframeSixGreenShapesBackground:React.FC = () => {
   return (
     <div className="absolute inset-0 pointer-events-none z-0">
-      <div className="absolute top-10 left-16 w-2 h-2 bg-green-400 rounded-full opacity-40 animate-pulse"></div>
+      {/* <div className="absolute top-10 left-16 w-2 h-2 bg-green-400 rounded-full opacity-40 animate-pulse"></div>
       <div
         className="absolute top-20 right-20 w-3 h-3 bg-green-500 rounded-full opacity-30 animate-pulse"
         style={{ animationDelay: "0.5s" }}
@@ -19,7 +19,7 @@ const WireframeSixGreenShapesBackground = () => {
       <div
         className="absolute top-1/4 right-1/3 w-1 h-1 bg-green-200 rounded-full opacity-60 animate-pulse"
         style={{ animationDelay: "2s" }}
-      ></div>
+      ></div> */}
       <div
         className="absolute bottom-1/3 left-1/4 w-3 h-3 bg-green-400 rounded-full opacity-45 animate-pulse"
         style={{ animationDelay: "2.5s" }}
@@ -42,7 +42,7 @@ const WireframeSixGreenShapesBackground = () => {
         style={{ animationDelay: "4.5s" }}
       ></div>
 
-      <div
+      {/* <div
         className="absolute top-16 left-1/2 w-1 h-1 bg-green-300 rounded-full opacity-55 animate-pulse"
         style={{ animationDelay: "5s" }}
       ></div>
@@ -53,8 +53,8 @@ const WireframeSixGreenShapesBackground = () => {
       <div
         className="absolute top-32 left-1/4 w-1 h-1 bg-green-500 rounded-full opacity-60 animate-pulse"
         style={{ animationDelay: "6s" }}
-      ></div>
-      <div
+      ></div> */}
+      {/* <div
         className="absolute bottom-16 right-1/3 w-3 h-3 bg-green-300 rounded-full opacity-35 animate-pulse"
         style={{ animationDelay: "6.5s" }}
       ></div>
@@ -73,7 +73,7 @@ const WireframeSixGreenShapesBackground = () => {
       <div
         className="absolute bottom-24 right-12 w-2 h-2 bg-green-500 transform rotate-45 opacity-50 animate-pulse"
         style={{ animationDelay: "8.5s" }}
-      ></div>
+      ></div> */}
     </div>
   );
 };

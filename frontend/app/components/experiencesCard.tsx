@@ -22,7 +22,7 @@ const ExperienceCard: React.FC<ExperienceCardProps> = ({
   duration,
   index,
 }) => {
-  console.log(organisationLogo.asset);
+  
   const cardRef = useRef<HTMLDivElement>(null);
   const [isHovered, setIsHovered] = useState<boolean>(false);
 
@@ -77,15 +77,15 @@ const ExperienceCard: React.FC<ExperienceCardProps> = ({
   return (
     <motion.div
       ref={cardRef}
-      className="relative group mb-6"
+      className="relative group mb-6 font-arial"
       variants={cardVariants}
       onMouseMove={handleMouseMove}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={handleMouseLeave}
     >
-      {/* Timeline dot */}
+      {/* Timeline marker, here is a nigga hacking things togetehr to make the animation work */}
       <motion.div
-        className="absolute -left-6 top-6 w-2 h-2 bg-blue-400/60 rounded-full"
+        className="absolute -left-6 top-6 w-2 h-2 bg-blue-400/60 rounded-full invisible"
         whileInView={{
           scale: [1, 1.2, 1],
           opacity: [0.6, 1, 0.6],

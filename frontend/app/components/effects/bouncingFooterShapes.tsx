@@ -10,8 +10,8 @@ import footerImageSeven from "../../assets/images/footerImg7.svg";
 import footerImageEight from "../../assets/images/footerImg8.svg";
 import footerImageNine from "../../assets/images/footerImg9.svg";
 
-const BouncingFooterShapes = () => {
-  // 8 different SVG shapes with colors
+const BouncingFooterShapes:React.FC = () => {
+  // 8 different SVG shapes with colors 
   const shapes = [
     {
       id: 1,

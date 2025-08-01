@@ -4,7 +4,6 @@ import { FaX } from "react-icons/fa6";
 import { BiMenu } from "react-icons/bi";
 import { useLocation, useNavigate } from "react-router";
 import navVector from "../assets/images/nav-vector.svg";
-import testLogo from "../assets/images/test-logo.jpg";
 import type { Navbar } from "~/sanity/interfaces/siteSettings";
 import { urlFor } from "~/sanity/sanityClient";
 
@@ -13,7 +12,6 @@ interface NavProps {
 }
 
 const Nav: React.FC<NavProps> = ({ navbar }) => {
-  console.log("🔍 Nav component loaded with navbar:", navbar);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [hoveredItem, setHoveredItem] = useState<string | null>(null);
   const [hoveredMobileItem, setHoveredMobileItem] = useState<string | null>(
@@ -40,10 +38,16 @@ const Nav: React.FC<NavProps> = ({ navbar }) => {
     };
   }, []);
 
+  // Handle body overflow when mobile menu is open
+  //Update I don't know why it's not working tho
+  useEffect(() => {
+    if (typeof document === "undefined") return;
 
-  //todo, that nav is funny on some short screens man
-  //todo, disable scrolling on mobile popups shwoing man
-  
+    if (isMenuOpen) {
+      document.body.classList.add("overflow-hidden");
+    }
+  }, [isMenuOpen]);
+
   const navItems = [
     { name: "Home", href: "/", badgeText: "H" },
     { name: "About Us", href: "/about", badgeText: "A" },
@@ -54,28 +58,6 @@ const Nav: React.FC<NavProps> = ({ navbar }) => {
     setIsMenuOpen(!isMenuOpen);
   };
 
-  useEffect(() => {
-    if (typeof document === "undefined") return;
-
-    if (isMenuOpen) {
-      //never did this before bro
-      const originalOverflow = document.body.style.overflow;
-      document.body.style.overflow = "hidden";
-
-      return () => {
-        document.body.style.overflow = originalOverflow;
-      };
-    } else {
-      document.body.style.overflow = "";
-    }
-
-    return () => {
-      if (typeof document !== "undefined") {
-        document.body.style.overflow = "";
-      }
-    };
-  }, [isMenuOpen]);
-
   const handleNavClick = (href: string) => {
     navigate(href);
 
@@ -85,7 +67,7 @@ const Nav: React.FC<NavProps> = ({ navbar }) => {
     }
   };
 
-  //Didn't use navLink cos of things around formatting sha
+  //Didn't use navLink cos of things around formatting and I wanted more control of styling
   const isActiveRoute = (href: string) => {
     if (href === "/" && location.pathname === "/") return true;
     if (href !== "/" && location.pathname === href) return true;
@@ -94,7 +76,7 @@ const Nav: React.FC<NavProps> = ({ navbar }) => {
 
   return (
     <nav
-      className={`text-white relative border-b border-[#FEEDEC17] transition-all duration-300 ${
+      className={`text-white relative border-b border-[#FEEDEC17] transition-all duration-300 font-arial ${
         isScrolled ? " shadow-2xl backdrop-blur-3xl" : "bg-transparent"
       }`}
       role="navigation"
@@ -102,8 +84,8 @@ const Nav: React.FC<NavProps> = ({ navbar }) => {
     >
       <div className="max-w-[1400px] mx-auto px-6 lg:px-8">
         <div className="flex items-center justify-between h-20">
-          {/* Logo - Semantic Header */}
           <header className="flex-shrink-0">
+            {/*New tailwind style I learned, screen reader only*/}
             <h1 className="sr-only">Uthman's Portfolio</h1>
             <button
               onClick={() => handleNavClick("/")}
@@ -149,8 +131,8 @@ const Nav: React.FC<NavProps> = ({ navbar }) => {
                           transition-colors duration-300
                           ${
                             isActive || isHovered
-                              ? "text-white"
-                              : "text-gray-300 hover:text-white"
+                              ? "text-[#F5F5F599]"
+                              : "text-gray-500 hover:text-white"
                           }
                         `}
                       >
@@ -171,9 +153,6 @@ const Nav: React.FC<NavProps> = ({ navbar }) => {
                             src={navVector}
                             alt=""
                             aria-hidden="true"
-                            onError={(e) => {
-                              console.warn("Nav vector failed to load:", e);
-                            }}
                           />
                           <span
                             className={`
@@ -251,7 +230,6 @@ const Nav: React.FC<NavProps> = ({ navbar }) => {
             </motion.a>
           </div>
 
-          {/* Mobile menu button */}
           <div className="lg:hidden">
             <motion.button
               onClick={toggleMenu}
@@ -259,40 +237,20 @@ const Nav: React.FC<NavProps> = ({ navbar }) => {
               whileTap={{ scale: 0.95 }}
               aria-expanded={isMenuOpen}
               aria-controls="mobile-menu"
-              aria-label={
-                isMenuOpen ? "Close navigation menu" : "Open navigation menu"
-              }
+              aria-label={"Open navigation menu"}
             >
-              <motion.div
-                animate={{ rotate: isMenuOpen ? 180 : 0 }}
-                transition={{ duration: 0.3 }}
-              >
-                {isMenuOpen ? <FaX size={24} /> : <BiMenu size={24} />}
-              </motion.div>
+              <BiMenu size={24} />
             </motion.button>
           </div>
         </div>
       </div>
 
-      {/* Mobile Navigation Menu */}
       <AnimatePresence>
         {isMenuOpen && (
           <>
-            {/* Backdrop */}
-            <motion.div
-              className="fixed inset-0 bg-black/70 backdrop-blur-sm z-40 lg:hidden"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.3 }}
-              onClick={toggleMenu}
-              aria-hidden="true"
-            />
-
-            {/* Mobile Menu Panel */}
             <motion.div
               id="mobile-menu"
-              className="fixed top-0 right-0 w-full h-screen bg-gradient-to-br from-slate-900/98 to-slate-800/98 backdrop-blur-xl z-50 lg:hidden overflow-hidden"
+              className="fixed inset-0 w-full h-[115vh] bg-gradient-to-br from-slate-900/98 to-slate-800/98 backdrop-blur-xl z-50 lg:hidden overflow-hidden"
               initial={{ opacity: 0, x: "100%" }}
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: "100%" }}
@@ -304,7 +262,7 @@ const Nav: React.FC<NavProps> = ({ navbar }) => {
               <div className="absolute top-6 right-6 z-60">
                 <motion.button
                   onClick={toggleMenu}
-                  className="p-3 rounded-full text-gray-300 hover:text-white bg-slate-800/50 hover:bg-slate-700 border border-slate-600 hover:border-slate-500 transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-teal-500"
+                  className="p-3 rounded-full text-[#F5F5F599] hover:text-white bg-slate-800/50 hover:bg-slate-700 border border-slate-600 hover:border-slate-500 transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-teal-500"
                   whileTap={{ scale: 0.95 }}
                   whileHover={{ scale: 1.05 }}
                   aria-label="Close navigation menu"
@@ -313,10 +271,8 @@ const Nav: React.FC<NavProps> = ({ navbar }) => {
                 </motion.button>
               </div>
 
-              {/* Mobile Menu Content */}
-              <div className="flex flex-col justify-center items-center h-full px-8">
-                {/* Navigation Items */}
-                <div className="w-full max-w-md space-y-6">
+              <div className="flex flex-col justify-center items-center h-full px-6 py-20">
+                <div className="w-full max-w-md space-y-4">
                   {navItems.map((item, index) => {
                     const isActive = isActiveRoute(item.href);
                     const isHovered = hoveredMobileItem === item.name;
@@ -336,12 +292,12 @@ const Nav: React.FC<NavProps> = ({ navbar }) => {
                       >
                         <motion.button
                           className={`
-                            w-full flex items-center justify-between px-6 py-5 rounded-2xl cursor-pointer
+                            w-full flex items-center justify-between px-4 py-4 rounded-xl cursor-pointer
                             transition-all duration-300 border-2 group relative overflow-hidden
                             focus:outline-none focus:ring-2 focus:ring-teal-500
                             ${
                               isActive || isHovered
-                                ? "text-white bg-gradient-to-r from-teal-600/30 to-cyan-600/30 border-teal-500/70 shadow-xl shadow-teal-500/20"
+                                ? "text-[#F5F5F599] bg-gradient-to-r from-teal-600/30 to-cyan-600/30 border-teal-500/70 shadow-xl shadow-teal-500/20"
                                 : "text-gray-300 hover:text-white bg-slate-800/40 hover:bg-slate-800/80 border-slate-700/60 hover:border-slate-500"
                             }
                           `}
@@ -353,12 +309,11 @@ const Nav: React.FC<NavProps> = ({ navbar }) => {
                           role="menuitem"
                           aria-current={isActive ? "page" : undefined}
                         >
-                          {/* Left side - Badge and Text */}
-                          <div className="flex items-center space-x-5">
+                          <div className="flex items-center space-x-4">
                             <motion.div
                               className={`
-                                text-sm bg-[#042428] flex gap-2 items-center px-4 py-3 
-                                rounded-xl border-2 border-b-4 transition-all duration-300 min-w-[60px]
+                                text-sm bg-[#042428] flex gap-2 items-center px-3 py-2 
+                                rounded-lg border-2 border-b-4 transition-all duration-300 min-w-[50px]
                                 ${
                                   isActive || isHovered
                                     ? "border-teal-400 bg-teal-400/20 shadow-lg shadow-teal-400/30"
@@ -369,7 +324,7 @@ const Nav: React.FC<NavProps> = ({ navbar }) => {
                               transition={{ duration: 0.2 }}
                             >
                               <img
-                                className={`w-4 h-4 transition-all duration-300 ${
+                                className={`w-3 h-3 transition-all duration-300 ${
                                   isActive || isHovered
                                     ? "brightness-125 drop-shadow-sm"
                                     : "group-hover:brightness-115"
@@ -377,13 +332,10 @@ const Nav: React.FC<NavProps> = ({ navbar }) => {
                                 src={navVector}
                                 alt=""
                                 aria-hidden="true"
-                                onError={(e) => {
-                                  console.warn("Nav vector failed to load:", e);
-                                }}
                               />
                               <span
                                 className={`
-                                  text-center font-bold leading-5 capitalize transition-colors duration-300 text-base
+                                  text-center font-bold leading-5 capitalize transition-colors duration-300 text-sm
                                   ${
                                     isActive || isHovered
                                       ? "text-teal-200 drop-shadow-sm"
@@ -396,7 +348,7 @@ const Nav: React.FC<NavProps> = ({ navbar }) => {
                             </motion.div>
 
                             <span
-                              className={`font-semibold text-xl transition-colors duration-300 ${
+                              className={`font-semibold text-lg transition-colors duration-300 ${
                                 isActive || isHovered
                                   ? "text-white drop-shadow-sm"
                                   : "group-hover:text-white"
@@ -406,7 +358,6 @@ const Nav: React.FC<NavProps> = ({ navbar }) => {
                             </span>
                           </div>
 
-                          {/* Right side - Active Indicator */}
                           <motion.div
                             className={`
                               w-3 h-3 rounded-full transition-all duration-300
@@ -435,7 +386,7 @@ const Nav: React.FC<NavProps> = ({ navbar }) => {
 
                           {/* Background Glow Effect */}
                           <motion.div
-                            className="absolute inset-0 bg-gradient-to-r from-teal-400/5 to-cyan-400/5 rounded-2xl"
+                            className="absolute inset-0 bg-gradient-to-r from-teal-400/5 to-cyan-400/5 rounded-xl"
                             initial={{ opacity: 0 }}
                             animate={{ opacity: isHovered ? 1 : 0 }}
                             transition={{ duration: 0.3 }}
@@ -447,9 +398,8 @@ const Nav: React.FC<NavProps> = ({ navbar }) => {
                   })}
                 </div>
 
-                {/* Mobile Contact Button */}
                 <motion.div
-                  className="w-full max-w-md mt-12"
+                  className="w-full max-w-md mt-8"
                   initial={{ opacity: 0, y: 30 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: 30 }}
@@ -459,21 +409,20 @@ const Nav: React.FC<NavProps> = ({ navbar }) => {
                     ease: [0.23, 1, 0.32, 1],
                   }}
                 >
-                  <motion.button
-                    className="w-full bg-gradient-to-r from-teal-600 to-cyan-600 hover:from-teal-500 hover:to-cyan-500 px-8 py-5 rounded-2xl font-semibold text-lg transition-all duration-300 shadow-xl shadow-teal-600/30 hover:shadow-teal-500/50 border border-teal-500/40 hover:border-teal-400/60 focus:outline-none focus:ring-2 focus:ring-teal-500"
+                  <motion.a
+                    className="w-full block text-center bg-gradient-to-r from-teal-600 to-cyan-600 hover:from-teal-500 hover:to-cyan-500 px-6 py-4 rounded-xl font-semibold text-base transition-all duration-300 shadow-xl shadow-teal-600/30 hover:shadow-teal-500/50 border border-teal-500/40 hover:border-teal-400/60 focus:outline-none focus:ring-2 focus:ring-teal-500"
                     onClick={() => {
                       toggleMenu();
-                      // Add contact functionality here
-                      console.log("Mobile contact button clicked");
                     }}
                     whileTap={{ scale: 0.98 }}
                     whileHover={{ scale: 1.02 }}
                     aria-label="Contact us"
+                    href={navbar.contact || ""}
                   >
                     <span className="text-white drop-shadow-sm">
                       Contact Us
                     </span>
-                  </motion.button>
+                  </motion.a>
                 </motion.div>
               </div>
             </motion.div>

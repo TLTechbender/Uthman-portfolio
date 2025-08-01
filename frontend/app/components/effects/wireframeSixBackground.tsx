@@ -1,6 +1,6 @@
 import "../../assets/styles/wireramesSixbackground.css";
 
-const WireframeSixBackground = () => {
+const WireframeSixBackground:React.FC = () => {
   return (
     <div className="absolute inset-0 overflow-hidden">
       <svg

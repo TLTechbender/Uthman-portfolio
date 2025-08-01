@@ -10,7 +10,7 @@ interface FormData {
   message: string;
 }
 
-export default function ContactForm() {
+const ContactForm:React.FC = ()=> {
   const [formData, setFormData] = useState<FormData>({
     fullName: "",
     email: "",
@@ -53,7 +53,7 @@ export default function ContactForm() {
   };
 
   const handleSubmit = () => {
-    console.log("Form submitted:", formData);
+   
     // Handle form submission here
   };
 
@@ -76,7 +76,7 @@ export default function ContactForm() {
                 value={formData.fullName}
                 onChange={handleInputChange}
                 placeholder="Full Name"
-                className="w-full border-b border-gray-600 px-4 py-3 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:border-emerald-500 focus:border-transparent transition-all"
+                className="w-full border-b border-gray-600 px-4 py-3 text-white placeholder-gray-400 focus:outline-none focus:border focus:border-white focus:rounded-2xl transition-all"
                 required
               />
             </div>
@@ -95,7 +95,7 @@ export default function ContactForm() {
                 value={formData.email}
                 onChange={handleInputChange}
                 placeholder="Type here"
-                className="w-full border-b border-gray-600 px-4 py-3 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:border-emerald-500 focus:border-transparent transition-all"
+                className="w-full border-b border-gray-600 px-4 py-3 text-white placeholder-gray-400 focus:outline-none focus:border focus:border-white focus:rounded-2xl transition-all"
                 required
               />
             </div>
@@ -166,7 +166,7 @@ export default function ContactForm() {
                   step="100"
                   value={formData.budget}
                   onChange={handleBudgetChange}
-                  className="w-full h-0.5 bg-[#333333] rounded-lg appearance-none cursor-pointer slider"
+                  className="w-full h-0.5 bg-[#333333] rounded-lg appearance-none cursor-pointer slider focus:outline-none focus:ring-2 focus:ring-white focus:rounded-2xl"
                 />
                 <div className="flex justify-between text-emerald-400 text-sm mt-2">
                   <span>$100</span>
@@ -192,7 +192,7 @@ export default function ContactForm() {
               onChange={handleInputChange}
               placeholder="Type here"
               rows={5}
-              className="w-full resize-none border-b border-gray-600 px-4 py-3 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:border-emerald-500 focus:border-transparent transition-all resize-vertical"
+              className="w-full resize-none border-b border-gray-600 px-4 py-3 text-white placeholder-gray-400 focus:outline-none focus:border focus:border-white focus:rounded-2xl transition-all resize-vertical"
             />
           </div>
 
@@ -211,3 +211,6 @@ export default function ContactForm() {
     </div>
   );
 }
+
+
+export default ContactForm;

@@ -1,6 +1,6 @@
 import React from "react";
 
-//Ai assist bro, the css only method no work as nice as this
+//Ai assist bro, the css only method no work so I exported the svg out and alongside svgviewer.dev and claude (helped make it responsive)
 const NoiseOverlay: React.FC = () => {
   return (
     <>

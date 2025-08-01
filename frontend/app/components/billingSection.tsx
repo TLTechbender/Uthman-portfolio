@@ -1,9 +1,9 @@
 import { motion } from "framer-motion";
-import WireframeNineShapesBackground from "./effects/wireframeNineShapesBackground";
+
 import ContactForm from "./contactForm";
 import WireframeNineBackground from "./effects/wireframeNineBackground";
 
-const BillingSection = () => {
+const BillingSection:React.FC = () => {
   return (
     <div>
       <div className="relative">
@@ -13,7 +13,7 @@ const BillingSection = () => {
           transition={{ duration: 1.5 }}
           className="absolute inset-0 z-0"
         >
-          <WireframeNineShapesBackground />
+          {/* <WireframeNineShapesBackground /> */}
         </motion.div>
 
         {/* Thank you content */}
@@ -26,9 +26,9 @@ const BillingSection = () => {
             your digital ideas to life. Here are the different ways you can get
             in touch with me.
           </h3>
-          <button className="px-3 py-2 bg-[#0FB492] hover:scale-150 text-white w-fit mx-auto rounded-lg animate-pulse hover:animate-none transition-all duration-300">
+          {/* <button className="px-3 py-2 bg-[#0FB492] hover:scale-150 text-white w-fit mx-auto rounded-lg animate-pulse hover:animate-none transition-all duration-300">
             view more
-          </button>
+          </button> */}
         </div>
       </div>
 

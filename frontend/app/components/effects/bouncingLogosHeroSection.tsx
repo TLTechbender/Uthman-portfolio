@@ -19,6 +19,12 @@ interface Logo {
   image: string;
 }
 
+interface LogoConfig {
+  image: string;
+  sizeMultiplier: number;
+  name: string; // For easier identification
+}
+
 const BouncingLogosHeroSection = () => {
   const containerRef = useRef<HTMLDivElement>(null);
   const logosRef = useRef<Logo[]>([]);
@@ -26,13 +32,39 @@ const BouncingLogosHeroSection = () => {
   const containerDimensionsRef = useRef({ width: 0, height: 0 });
   const lastFrameTime = useRef<number>(0);
 
-  const logoImages = [figmaLogo, toolTip, greenBolt, starLight, iceLogo];
+  const logoConfigs: LogoConfig[] = [
+    { image: figmaLogo, sizeMultiplier: 2.5, name: "Figma" },
+    { image: toolTip, sizeMultiplier: 0.75, name: "Tooltip" },
+    { image: greenBolt, sizeMultiplier: 0.75, name: "GreenBolt" },
+    { image: starLight, sizeMultiplier: 0.75, name: "StarLight" },
+    { image: iceLogo, sizeMultiplier: 0.75, name: "Ice" },
+  ];
+
+  // Base sizing configuration for clamping bro
+  const baseSizing = {
+    minSize: 40, // Minimum size in pixels
+    maxSize: 80, // Maximum size in pixels
+    viewportFactor: 6, // vw unit for responsive sizing
+  };
 
   // Target 30fps instead of 60fps for better performance
+
   const TARGET_FPS = 30;
   const FRAME_DURATION = 1000 / TARGET_FPS;
 
-  // Initialize logos with direct DOM elements
+  const calculateLogoSize = (sizeMultiplier: number) => {
+    const scaledMin = baseSizing.minSize * sizeMultiplier;
+    const scaledMax = baseSizing.maxSize * sizeMultiplier;
+    const scaledVw = baseSizing.viewportFactor * sizeMultiplier;
+
+    return {
+      minSize: scaledMin,
+      maxSize: scaledMax,
+      clampValue: `clamp(${scaledMin}px, ${scaledVw}vw, ${scaledMax}px)`,
+    };
+  };
+
+  // Initialize logos with individual sizing
   useEffect(() => {
     if (!containerRef.current) return;
 
@@ -41,22 +73,24 @@ const BouncingLogosHeroSection = () => {
 
     containerDimensionsRef.current = { width: rect.width, height: rect.height };
 
-    // Clear existing logos to avoid duplication
     container.innerHTML = "";
     logosRef.current = [];
 
-    // Create logo elements directly in DOM with natural responsive sizing
-    for (let i = 0; i < logoImages.length; i++) {
+    // Create logo elements with individual sizing
+    logoConfigs.forEach((config, i) => {
       // Create img element
       const imgElement = document.createElement("img");
-      imgElement.src = logoImages[i];
-      imgElement.alt = "bouncing logo";
+      imgElement.src = config.image;
+      imgElement.alt = `${config.name} bouncing logo`;
       imgElement.className = "absolute select-none pointer-events-none";
 
-      // Responsive natural sizing
-      imgElement.style.maxWidth = "80px";
-      imgElement.style.maxHeight = "80px";
-      imgElement.style.width = "clamp(40px, 6vw, 80px)";
+      // Calculate individual sizing
+      const sizing = calculateLogoSize(config.sizeMultiplier);
+
+      // Apply individual responsive sizing
+      imgElement.style.maxWidth = `${sizing.maxSize}px`;
+      imgElement.style.maxHeight = `${sizing.maxSize}px`;
+      imgElement.style.width = sizing.clampValue;
       imgElement.style.height = "auto";
       imgElement.style.filter = "drop-shadow(0 4px 12px rgba(0,0,0,0.2))";
       imgElement.style.willChange = "transform";
@@ -67,29 +101,31 @@ const BouncingLogosHeroSection = () => {
       // Get actual rendered size after adding to DOM
       const computedStyle = window.getComputedStyle(imgElement);
       const logoSize = Math.max(
-        parseInt(computedStyle.width) || 60,
-        parseInt(computedStyle.height) || 60
+        parseInt(computedStyle.width) || sizing.maxSize,
+        parseInt(computedStyle.height) || sizing.maxSize
       );
 
-      // Store logo data with much slower initial velocities
+      // Store logo data with size-adjusted velocities
+      const velocityScale = Math.min(1.0, 1.0 / config.sizeMultiplier); // Larger logos move slightly slower
+
       const logo: Logo = {
         id: i,
         x: Math.random() * (rect.width - logoSize) + logoSize / 2,
         y: Math.random() * (rect.height - logoSize) + logoSize / 2,
-        vx: (Math.random() - 0.5) * 7, // Much slower: reduced from 20 to 4
-        vy: (Math.random() - 0.5) * 7, // Much slower: reduced from 30 to 4
+        vx: (Math.random() - 0.5) * 7 * velocityScale,
+        vy: (Math.random() - 0.5) * 7 * velocityScale,
         size: logoSize,
         rotation: Math.random() * 360,
-        rotationSpeed: (Math.random() - 0.5) * 4, // Much slower rotation: reduced from 3 to 0.5
+        rotationSpeed: (Math.random() - 0.5) * 4 * velocityScale,
         element: imgElement,
-        image: logoImages[i],
+        image: config.image,
       };
 
       logosRef.current.push(logo);
 
       // Set initial position
       updateLogoPosition(logo);
-    }
+    });
 
     // Start animation
     startAnimation();
@@ -101,7 +137,7 @@ const BouncingLogosHeroSection = () => {
       }
       logosRef.current = [];
     };
-  }, [logoImages]);
+  }, [logoConfigs]); // Now depends on logoConfigs for reactivity
 
   // Handle container resize
   useEffect(() => {
@@ -130,9 +166,8 @@ const BouncingLogosHeroSection = () => {
     logo.element.style.transform = transform;
   };
 
-  // Throttled animation loop with much gentler movements
+  // Animation loop (unchanged from original)
   const animate = (currentTime: number) => {
-    // Throttle to target FPS
     if (currentTime - lastFrameTime.current < FRAME_DURATION) {
       animationRef.current = requestAnimationFrame(animate);
       return;
@@ -148,47 +183,38 @@ const BouncingLogosHeroSection = () => {
     }
 
     logosRef.current.forEach((logo) => {
-      // Much gentler coordinated movement
-      const time = currentTime * 0.0005; // Slower time progression: reduced from 0.001 to 0.0005
-      const chaosX = Math.sin(time + logo.id) * 0.1; // Reduced chaos: from 0.5 to 0.1
-      const chaosY = Math.cos(time + logo.id * 1.5) * 0.1; // Reduced chaos: from 0.5 to 0.1
+      const time = currentTime * 0.0005;
+      const chaosX = Math.sin(time + logo.id) * 0.1;
+      const chaosY = Math.cos(time + logo.id * 1.5) * 0.1;
 
-      // Update position with gentle chaos
       logo.x += logo.vx + chaosX;
       logo.y += logo.vy + chaosY;
       logo.rotation += logo.rotationSpeed;
 
-      // Bounce off walls with more damping for smoother movement
-      const damping = 0.8; // More damping: reduced from 0.95 to 0.8
+      const damping = 0.8;
 
       if (logo.x - logo.size / 2 <= 0 || logo.x + logo.size / 2 >= width) {
         logo.vx = -logo.vx * damping;
-        // Reduced randomness in bounce
-        logo.vx += (Math.random() - 0.5) * 0.5; // Reduced from 2 to 0.5
+        logo.vx += (Math.random() - 0.5) * 0.5;
         logo.x =
           logo.x - logo.size / 2 <= 0 ? logo.size / 2 : width - logo.size / 2;
       }
 
       if (logo.y - logo.size / 2 <= 0 || logo.y + logo.size / 2 >= height) {
         logo.vy = -logo.vy * damping;
-        // Reduced randomness in bounce
-        logo.vy += (Math.random() - 0.5) * 0.5; // Reduced from 2 to 0.5
+        logo.vy += (Math.random() - 0.5) * 0.5;
         logo.y =
           logo.y - logo.size / 2 <= 0 ? logo.size / 2 : height - logo.size / 2;
       }
 
-      // More friction for sustained but slower movement
-      logo.vx *= 0.999; // More friction: reduced from 0.9995 to 0.999
+      logo.vx *= 0.999;
       logo.vy *= 0.999;
 
-      // Very occasional gentle speed boost
       if (Math.random() < 0.0005) {
-        // Much less frequent: reduced from 0.002 to 0.0005
-        logo.vx += (Math.random() - 0.5) * 0.5; // Gentler boost: reduced from 3 to 0.5
+        logo.vx += (Math.random() - 0.5) * 0.5;
         logo.vy += (Math.random() - 0.5) * 0.5;
       }
 
-      // Minimum velocity to prevent logos from getting stuck
       const minVelocity = 0.1;
       if (Math.abs(logo.vx) < minVelocity) {
         logo.vx = logo.vx >= 0 ? minVelocity : -minVelocity;
@@ -197,7 +223,6 @@ const BouncingLogosHeroSection = () => {
         logo.vy = logo.vy >= 0 ? minVelocity : -minVelocity;
       }
 
-      // Update DOM element directly
       updateLogoPosition(logo);
     });
 
@@ -205,7 +230,7 @@ const BouncingLogosHeroSection = () => {
   };
 
   const startAnimation = () => {
-    stopAnimation(); // Ensure no duplicate animations
+    stopAnimation();
     lastFrameTime.current = 0;
     animationRef.current = requestAnimationFrame(animate);
   };
@@ -217,6 +242,12 @@ const BouncingLogosHeroSection = () => {
     }
   };
 
+  {
+    /**
+     My first implementation used react state for logos, that was very bad as it was sporadic and causing about a billion
+    rerenders, using a ref takes care of this, all I gotta just make sure to do is that this page does not in any way rerender
+    */
+  }
   return (
     <div
       className="absolute inset-0 w-full h-full overflow-hidden"

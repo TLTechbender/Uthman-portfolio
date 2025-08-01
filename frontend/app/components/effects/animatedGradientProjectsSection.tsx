@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState, useCallback, memo } from "react";
 
-const AnimatedGradientProjectsSection = memo(() => {
+const AnimatedGradientProjectsSection:React.FC = memo(() => {
   const containerRef = useRef<HTMLDivElement>(null);
   const svgRef = useRef<SVGSVGElement>(null);
   const [isMobile, setIsMobile] = useState(false);

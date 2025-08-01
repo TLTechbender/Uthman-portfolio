@@ -25,10 +25,9 @@ interface NavbarLogo {
   crop?: SanityImageCrop | null;
 }
 
-
 export interface Navbar {
-    logo: NavbarLogo;
-    contact: string;
+  logo: NavbarLogo;
+  contact: string;
 }
 
 export type SocialPlatform =
@@ -53,6 +52,7 @@ export interface SocialLink {
 
 export interface FooterData {
   socialLinks: SocialLink[];
+  email: string;
 }
 
 export interface SiteSettings {

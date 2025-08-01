@@ -165,27 +165,8 @@ export const aboutPage = defineType({
             ],
           },
         },
-        {
-          type: 'image',
-          options: {hotspot: true},
-          fields: [
-            {
-              name: 'alt',
-              type: 'string',
-              title: 'Alternative text',
-              description: 'Important for SEO and accessibility',
-              validation: (Rule) => Rule.required(),
-            },
-            {
-              name: 'caption',
-              type: 'string',
-              title: 'Caption',
-              description: 'Optional caption for the image',
-            },
-          ],
-        },
       ],
-      description: 'Write your heart out! Full formatting support with images, links, and styling.',
+      description: 'Write your heart out!',
       validation: (Rule) => Rule.required().min(1).error('Sub heading content is required'),
     }),
 
@@ -321,6 +302,13 @@ export const aboutPage = defineType({
       validation: (Rule) =>
         Rule.required().length(3).error('You must add exactly 3 images for the gallery'),
       description: 'Add exactly 3 of your best images to beautify the page',
+    }),
+
+    defineField({
+      name: 'bottomQuote',
+      title: 'The quote at the bottom of the page',
+      type: 'string',
+      description: 'Just one Fine ass quote which you may or may not decide to include bro',
     }),
   ],
 

@@ -193,3 +193,31 @@ export const homepageContentQuery = `*[_type == "homepage"][0]{
     order
   } | order(order asc)
 }`;
+
+export const portfolioPageContentQueryForHomePage = `*[_type == "portfolioPage"][0] {
+  _id,
+  _rev,
+  
+  "portfolioProjects": portfolioProjects[0...3] {
+    projectName,
+    shortDescription,
+    projectLink {
+      text,
+      url
+    },
+    projectImage {
+      asset->{
+        _id,
+        url,
+        metadata {
+          dimensions {
+            width,
+            height
+          }
+        }
+      },
+      alt,
+      caption
+    }
+  }
+}`;

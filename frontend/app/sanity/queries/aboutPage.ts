@@ -1,0 +1,54 @@
+export const aboutPageSeoQuery = `*[_type == "aboutPage"][0]{
+  _id,
+  _type,
+  seo{
+    title,
+    description,
+    ogImage{
+      asset->{
+        _id,
+        url,
+        metadata{
+          dimensions{
+            width,
+            height
+          }
+        }
+      },
+      alt,
+      hotspot,
+      crop
+    },
+    keywords,
+    canonicalUrl,
+    twitterHandle,
+    linkedInHandle,
+    behanceHandle,
+    instagramHandle
+  }
+}`;
+export const aboutPageQuery = `*[_type == "aboutPage"][0]{
+  pageHeading,
+  subHeading,
+  projectsCount,
+  clientsCount,
+  contactLink,
+  galleryImages[]{
+    image{
+      asset->{
+        _id,
+        url,
+        metadata{
+          dimensions{
+            width,
+            height
+          }
+        }
+      }
+    },
+    alt,
+    caption,
+    priority
+  },
+  bottomQuote
+}`;

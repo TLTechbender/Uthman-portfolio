@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState, useCallback, memo } from "react";
 
-const AnimatedGradientsHeroSection = memo(() => {
+const AnimatedGradientsHeroSection:React.FC = memo(() => {
   const containerRef = useRef<HTMLDivElement>(null);
   const svgRef = useRef<SVGSVGElement>(null);
   const [isMobile, setIsMobile] = useState(false);
@@ -11,13 +11,14 @@ const AnimatedGradientsHeroSection = memo(() => {
   const baseIndigo = "#615FFF";
 
   // Memoize the resize handler
+  //I wish I can just pass this entire thing off to the gpu bro
   const handleResize = useCallback(() => {
     const mobile = window.innerWidth < 768;
     setIsMobile(mobile);
   }, []);
 
-  // Throttle to 30fps instead of 60fps for better performance cos it was hanging like mahd
-  const FRAME_RATE = 33; // ~30fps
+  // Throttle to 24fps instead of 60fps for better performance cos it was hanging like mahd
+  const FRAME_RATE = 24; 
 
   const updateStyles = useCallback(
     (

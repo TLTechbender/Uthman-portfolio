@@ -123,6 +123,12 @@ const siteSettings = defineType({
           ],
           validation: (Rule) => Rule.min(1).error('At least one social link is recommended'),
         }),
+        defineField({
+          name: 'email', 
+          title: 'Your eamil', 
+          type: 'string', 
+          validation: (Rule) => Rule.required().email().error('Please enter a valid email address'),
+        }),
       ],
     }),
   ],

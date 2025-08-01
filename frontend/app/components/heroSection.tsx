@@ -1,11 +1,11 @@
 import { motion, type Variants } from "framer-motion";
+import { useRef, useEffect } from "react";
 
 import NoiseOverlay from "./effects/noiseOverlay";
 import BouncingLogosHeroSection from "./effects/bouncingLogosHeroSection";
 import AnimatedGradientsHeroSection from "./effects/animatedGradientHeroSection";
 import OponIfa from "../assets/images/opon-ifa.svg";
 
-import { useRef, useEffect } from "react";
 import type { Hero } from "~/sanity/interfaces/homepage";
 import { urlFor } from "~/sanity/sanityClient";
 
@@ -14,7 +14,28 @@ interface HeroSectionProps {
 }
 
 const HeroSection: React.FC<HeroSectionProps> = ({ hero }) => {
-  const initialFadeInUp: Variants = {
+  // Animation variants
+  const slideFromLeft: Variants = {
+    hidden: {
+      opacity: 0,
+      x: -100,
+      scale: 0.95,
+    },
+    visible: {
+      opacity: 1,
+      x: 0,
+      scale: 1,
+      transition: {
+        duration: 0.8,
+        ease: [0.25, 0.46, 0.45, 0.94],
+        type: "spring",
+        damping: 20,
+        stiffness: 100,
+      },
+    },
+  };
+
+  const fadeInUp: Variants = {
     hidden: {
       opacity: 0,
       y: 30,
@@ -22,19 +43,30 @@ const HeroSection: React.FC<HeroSectionProps> = ({ hero }) => {
     visible: {
       opacity: 1,
       y: 0,
-      transition: { duration: 0.6, ease: [0.25, 0.46, 0.45, 0.94] },
+      transition: {
+        duration: 0.6,
+        ease: [0.25, 0.46, 0.45, 0.94],
+      },
     },
   };
 
-  const initialFadeInScale: Variants = {
+  const fadeInScale: Variants = {
     hidden: {
       opacity: 0,
-      scale: 0.9,
+      scale: 0.8,
+      y: 20,
     },
     visible: {
       opacity: 1,
       scale: 1,
-      transition: { duration: 0.8, ease: [0.34, 1.56, 0.64, 1], delay: 0.2 },
+      y: 0,
+      transition: {
+        duration: 0.8,
+        ease: [0.34, 1.56, 0.64, 1],
+        type: "spring",
+        damping: 15,
+        stiffness: 80,
+      },
     },
   };
 
@@ -63,17 +95,17 @@ const HeroSection: React.FC<HeroSectionProps> = ({ hero }) => {
     },
   };
 
-  const initialStaggerContainer: Variants = {
+  const staggerContainer: Variants = {
     hidden: {},
     visible: {
       transition: {
-        staggerChildren: 0.1,
-        delayChildren: 0.3,
+        staggerChildren: 0.15,
+        delayChildren: 0.1,
       },
     },
   };
 
-  console.log(hero.typewriterWords);
+  // Typewriter effect logic
   const phrases = hero.typewriterWords;
   const typewriterRef = useRef<HTMLSpanElement>(null);
   const cursorRef = useRef<HTMLSpanElement>(null);
@@ -82,14 +114,49 @@ const HeroSection: React.FC<HeroSectionProps> = ({ hero }) => {
   const isDeleting = useRef(false);
   const typewriterStarted = useRef(false);
 
+  const startTypewriter = () => {
+    if (!typewriterStarted.current) return;
+
+    const currentPhrase = phrases[currentPhraseIndex.current];
+
+    if (!isDeleting.current) {
+      if (currentText.current.length < currentPhrase.length) {
+        currentText.current = currentPhrase.slice(
+          0,
+          currentText.current.length + 1
+        );
+        if (typewriterRef.current) {
+          typewriterRef.current.textContent = currentText.current;
+        }
+        setTimeout(startTypewriter, 200);
+      } else {
+        setTimeout(() => {
+          isDeleting.current = true;
+          startTypewriter();
+        }, 3000);
+      }
+    } else {
+      if (currentText.current.length > 0) {
+        currentText.current = currentText.current.slice(0, -1);
+        if (typewriterRef.current) {
+          typewriterRef.current.textContent = currentText.current;
+        }
+        setTimeout(startTypewriter, 80);
+      } else {
+        isDeleting.current = false;
+        currentPhraseIndex.current =
+          (currentPhraseIndex.current + 1) % phrases.length;
+        setTimeout(startTypewriter, 500);
+      }
+    }
+  };
+
   useEffect(() => {
-    // Start typewriter after initial animations
     const startTimer = setTimeout(() => {
       typewriterStarted.current = true;
       startTypewriter();
-    }, 1200);
+    }, 2000); // Start after heading animation
 
-    // Start cursor blinking immediately
     const cursorInterval = setInterval(() => {
       if (cursorRef.current) {
         cursorRef.current.style.opacity =
@@ -97,54 +164,15 @@ const HeroSection: React.FC<HeroSectionProps> = ({ hero }) => {
       }
     }, 530);
 
-    function startTypewriter() {
-      if (!typewriterStarted.current) return;
-
-      const currentPhrase = phrases[currentPhraseIndex.current];
-
-      if (!isDeleting.current) {
-        if (currentText.current.length < currentPhrase.length) {
-          currentText.current = currentPhrase.slice(
-            0,
-            currentText.current.length + 1
-          );
-          if (typewriterRef.current) {
-            typewriterRef.current.textContent = currentText.current;
-          }
-          // Smoother writing - reduced from 300ms to 120ms
-          setTimeout(startTypewriter, 120);
-        } else {
-          setTimeout(() => {
-            isDeleting.current = true;
-            startTypewriter();
-          }, 2000);
-        }
-      } else {
-        if (currentText.current.length > 0) {
-          currentText.current = currentText.current.slice(0, -1);
-          if (typewriterRef.current) {
-            typewriterRef.current.textContent = currentText.current;
-          }
-          // Faster deletion - reduced from 180ms to 50ms
-          setTimeout(startTypewriter, 50);
-        } else {
-          isDeleting.current = false;
-          currentPhraseIndex.current =
-            (currentPhraseIndex.current + 1) % phrases.length;
-          setTimeout(startTypewriter, 300);
-        }
-      }
-    }
-
     return () => {
       clearTimeout(startTimer);
       clearInterval(cursorInterval);
     };
-  }, []);
+  }, [phrases]);
 
   return (
-    <div className="relative w-full h-full py-16 md:pt-24 overflow-hidden">
-      {/* Background effects */}
+    <div className="relative w-full h-full py-16 md:pt-24 overflow-hidden font-arial">
+      {/* Background effects, I don't even know why tho, seem super useless if you ask me nigga */}
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
@@ -155,7 +183,7 @@ const HeroSection: React.FC<HeroSectionProps> = ({ hero }) => {
         <AnimatedGradientsHeroSection />
       </motion.div>
 
-      {/* Floating background image - hide on very small screens */}
+      {/* Floating background image */}
       <motion.picture
         className="absolute top-0 w-full h-full hidden sm:flex justify-center items-start"
         variants={floatingAnimation}
@@ -163,6 +191,7 @@ const HeroSection: React.FC<HeroSectionProps> = ({ hero }) => {
         animate="visible"
       >
         <img
+          //can't blame a nigga for the naming bro, looks like something like that nigga
           src={OponIfa}
           alt="Effect Image"
           className="max-w-[150px] sm:max-w-[180px] md:max-w-[202px] max-h-[145px] sm:max-h-[170px] md:max-h-[195px] w-auto h-auto object-contain opacity-20"
@@ -172,15 +201,18 @@ const HeroSection: React.FC<HeroSectionProps> = ({ hero }) => {
       <div className="px-4 sm:px-6 lg:px-8">
         <motion.div
           className="max-w-4xl mt-18 md:mt-24 lg:mt-28 w-full mx-auto relative"
-          variants={initialStaggerContainer}
+          variants={staggerContainer}
           initial="hidden"
           animate="visible"
         >
           <div className="text-center space-y-6 sm:space-y-8 lg:space-y-12">
-            {/* Profile Image */}
+           
             <motion.div
               className="flex justify-center"
-              variants={initialFadeInScale}
+              variants={fadeInScale}
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true, amount: 0.3 }}
             >
               <motion.div
                 className="relative"
@@ -201,7 +233,7 @@ const HeroSection: React.FC<HeroSectionProps> = ({ hero }) => {
                     src={urlFor(hero.centerPieceImage.asset._id)
                       .width(96)
                       .height(96)
-                      .format("jpg")
+                      .format("webp")
                       .quality(100)
                       .url()}
                     alt="UX Designer Profile"
@@ -217,24 +249,25 @@ const HeroSection: React.FC<HeroSectionProps> = ({ hero }) => {
               </motion.div>
             </motion.div>
 
-            {/* Main Heading with Typewriter */}
+            {/* Main Heading with Typewriter: ai generated cos I was too lazy to learn LoL */}
             <motion.div
               className="space-y-3 sm:space-y-4 lg:space-y-6"
-              variants={initialFadeInUp}
+              variants={slideFromLeft}
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true, amount: 0.3 }}
             >
-              <h1 className="text-2xl xs:text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold leading-tight px-2 sm:px-0">
+              <h1 className="text-2xl xs:text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold leading-tight px-2 sm:px-0 text-white">
                 {hero.beforeTypewriterText}{" "}
                 <span className="relative inline-block">
-                  {/* Dynamic width calculation based on longest phrase */}
                   <span
                     className="inline-block text-left relative"
                     style={{
-                      minWidth: `${Math.max(...phrases.map((phrase) => phrase.length)) * 0.5}ch`, // Dynamic width based on longest phrase
+                      minWidth: `${Math.max(...phrases.map((phrase) => phrase.length)) * 0.5}ch`,
                       minHeight: "1.2em",
                       verticalAlign: "top",
                     }}
                   >
-                    {/* Hidden text for width calculation - all phrases rendered invisibly */}
                     <span
                       className="absolute top-0 left-0 invisible pointer-events-none select-none"
                       aria-hidden="true"
@@ -254,13 +287,13 @@ const HeroSection: React.FC<HeroSectionProps> = ({ hero }) => {
                       transition={{ duration: 3, repeat: Infinity }}
                       style={{ backgroundSize: "200% 200%" }}
                     >
-                      <span ref={typewriterRef}>ui designer</span>
+                      <span  ref={typewriterRef}></span>
                       <span
                         ref={cursorRef}
                         className="inline-flex w-0.5 bg-teal-400 ml-1"
                         style={{
                           opacity: 1,
-                          height: "1em", // Use em units to scale with font size
+                          height: "1em",
                         }}
                       >
                         |
@@ -268,14 +301,17 @@ const HeroSection: React.FC<HeroSectionProps> = ({ hero }) => {
                     </motion.span>
                   </span>
                 </span>
-                <span className="text-white"> {hero.remainingText} </span>
+                <span > {hero.remainingText} </span>
               </h1>
             </motion.div>
 
             {/* Description */}
             <motion.div
               className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-0"
-              variants={initialFadeInUp}
+              variants={fadeInUp}
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true, amount: 0.3 }}
             >
               <p className="text-white text-base sm:text-lg leading-relaxed">
                 {hero.subHeading}
@@ -285,7 +321,10 @@ const HeroSection: React.FC<HeroSectionProps> = ({ hero }) => {
             {/* Action Buttons */}
             <motion.div
               className="flex flex-col sm:flex-row gap-3 sm:gap-4 lg:gap-6 justify-center items-center pt-4 sm:pt-6 lg:pt-8 px-4 sm:px-0"
-              variants={initialFadeInUp}
+              variants={fadeInUp}
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true, amount: 0.3 }}
             >
               {/* Primary CTA Button */}
               <motion.a

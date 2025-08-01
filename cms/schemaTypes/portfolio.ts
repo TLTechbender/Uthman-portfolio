@@ -89,7 +89,7 @@ const portfolioPage = defineType({
     defineField({
       name: 'portfolioProjects',
       title: 'Portfolio Projects',
-        type: 'array',
+      type: 'array',
       description: 'LFG!!! Designer wey get evidence yapa!!!!',
       of: [
         {
@@ -171,36 +171,6 @@ const portfolioPage = defineType({
                   'Project image is required - this is crucial for visual impact!',
                 ),
             }),
-
-            defineField({
-              name: 'projectType',
-              title: 'Project Type',
-              type: 'string',
-              options: {
-                list: [
-                  {title: 'Web Design', value: 'web-design'},
-                  {title: 'Mobile App', value: 'mobile-app'},
-                  {title: 'UI/UX Design', value: 'ui-ux'},
-                  {title: 'Branding', value: 'branding'},
-                  {title: 'Development', value: 'development'},
-                  {title: 'E-commerce', value: 'ecommerce'},
-                  {title: 'Landing Page', value: 'landing-page'},
-                  {title: 'Dashboard', value: 'dashboard'},
-                  {title: 'Other', value: 'other'},
-                ],
-                layout: 'dropdown',
-              },
-              description:
-                'Category or type of project (e.g., Web Design, Mobile App, UI/UX, this is optional, but I am thinking about an SEO direction so just it case it could help your website rank high if search engines can index all of this)',
-            }),
-
-            defineField({
-              name: 'displayOrder',
-              title: 'Display Order',
-              type: 'number',
-              description: 'Order in which this project appears (lower numbers first)',
-              validation: (Rule) => Rule.integer().positive(),
-            }),
           ],
           preview: {
             select: {
@@ -226,18 +196,19 @@ const portfolioPage = defineType({
     }),
   ],
 
-  // Document-level settings
   preview: {
     select: {
       seoTitle: 'seo.title',
-      projectCount: 'portfolioProjects',
+      // portfolioProjects: 'portfolioProjects',
       firstProjectImage: 'portfolioProjects.0.projectImage',
     },
-    prepare({seoTitle, projectCount, firstProjectImage}) {
-      const count = Array.isArray(projectCount) ? projectCount.length : 0
+    prepare({seoTitle, firstProjectImage}) {
+      // This approach works but might be slower for documents with many projects
+      // const projectCount = Array.isArray(portfolioProjects) ? portfolioProjects.length : 0
+
       return {
         title: seoTitle || 'Portfolio Page',
-        subtitle: `${count} project${count !== 1 ? 's' : ''}`,
+
         media: firstProjectImage,
       }
     },

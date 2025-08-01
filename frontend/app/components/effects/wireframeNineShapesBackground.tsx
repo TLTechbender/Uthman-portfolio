@@ -200,7 +200,7 @@ const WireframeNineShapesBackground: React.FC = () => {
 
   // Reposition all shapes when container bounds change
   const repositionAllShapes = useCallback(() => {
-    shapeRefs.current.forEach((shapeRef, id) => {
+    shapeRefs.current.forEach((_, id) => {
       const newPos = getRandomPosition();
       updateShapeVisuals(id, {
         x: newPos.x,

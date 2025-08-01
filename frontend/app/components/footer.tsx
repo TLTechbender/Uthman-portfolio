@@ -66,9 +66,9 @@ const Footer: React.FC<FooterProps> = ({ footerData }) => {
                     production-ready designs. Let's talk!
                   </h2>
 
-                  <button className="px-4 py-3 sm:px-5 sm:py-3 bg-[#0FB492] text-white w-fit rounded-lg animate-pulse hover:animate-none transition-all duration-300 text-sm sm:text-base">
+                  {/* <button className="px-4 py-3 sm:px-5 sm:py-3 bg-[#0FB492] text-white w-fit rounded-lg animate-pulse hover:animate-none transition-all duration-300 text-sm sm:text-base">
                     view more
-                  </button>
+                  </button> */}
                 </div>
               </div>
             </div>
@@ -79,9 +79,9 @@ const Footer: React.FC<FooterProps> = ({ footerData }) => {
                 <div className="flex-1 flex flex-col justify-center">
                   {/* Main heading */}
                   <div className="mb-12 sm:mb-16 lg:mb-20">
-                    <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl 2xl:text-8xl font-light leading-tight">
-                      Let's <span className="italic">Collab</span>
-                      <span className="text-yellow-400">.</span>
+                    <h1 className="text-3xl sm:text-4xl text-white md:text-5xl lg:text-6xl xl:text-7xl 2xl:text-8xl font-normal leading-tight">
+                      Let's <span className="italic font-bold">Collab</span>
+                      <span className="text-yellow-400 text-lg">■</span>
                     </h1>
                   </div>
 
@@ -133,9 +133,9 @@ const Footer: React.FC<FooterProps> = ({ footerData }) => {
                       <h2 className="text-base sm:text-lg md:text-xl font-medium mb-4 sm:mb-5 lg:mb-6">
                         Get in touch
                       </h2>
-                      <p className="text-gray-300 text-xs sm:text-sm md:text-base italic break-all sm:break-normal">
-                        suarauthman@gmail.com
-                      </p>
+                      <a href={`mailto:${footerData.email}`} className="text-gray-300 text-xs sm:text-sm md:text-base italic break-all sm:break-normal">
+                      {footerData.email}
+                      </a>
                     </div>
                   </div>
                 </div>
@@ -143,7 +143,7 @@ const Footer: React.FC<FooterProps> = ({ footerData }) => {
                 {/* Copyright */}
                 <div className="mt-12 sm:mt-16 lg:mt-20 xl:mt-24">
                   <p className="text-gray-400 text-xs sm:text-sm">
-                    © Copyright {copyrightYearString}
+                    © Copyright  {copyrightYearString}
                   </p>
                 </div>
               </div>

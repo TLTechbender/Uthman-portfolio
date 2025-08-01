@@ -46,11 +46,6 @@ export interface HomepageSeoData {
   seo: Seo;
 }
 
-
-
-
-
-
 // TypeScript interfaces for Homepage Content
 interface SanityImageHotspot {
   x: number;
@@ -115,8 +110,8 @@ export interface Experience {
   jobTitle: string;
   duration: string;
   description: string;
-    order?: number;
-    organisationLogo: SanityImage;
+  order?: number;
+  organisationLogo: SanityImage;
 }
 
 // Beyond Portfolio Types

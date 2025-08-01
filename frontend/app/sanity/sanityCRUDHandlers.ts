@@ -15,7 +15,6 @@ export async function sanityFetchWrapper<T = any>(
     const result = await sanityClient.fetch(query, params);
     return result;
   } catch (error) {
-    console.error("Sanity fetch error:", error);
 
     const sanityError: ClientError = new Error(
       error instanceof Error ? error.message : "Sanity query failed"
