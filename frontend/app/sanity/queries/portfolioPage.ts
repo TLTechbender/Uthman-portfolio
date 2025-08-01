@@ -1,4 +1,4 @@
-export const portfolioPageSeoQuery = `*[_type == "aboutPage"][0]{
+export const portfolioPageSeoQuery = `*[_type == "portfolioPage"][0]{
   _id,
   _type,
   seo{
