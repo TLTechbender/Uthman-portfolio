@@ -61,9 +61,12 @@ const Nav: React.FC<NavProps> = ({ navbar }) => {
   const handleNavClick = (href: string) => {
     navigate(href);
 
+    document.body.classList.remove("overflow-hidden");
+
     // Close mobile menu if open
     if (isMenuOpen) {
       setIsMenuOpen(false);
+
     }
   };
 

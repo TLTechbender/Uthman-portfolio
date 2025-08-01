@@ -28,7 +28,7 @@ Person fit ask: "On top single page app you run go do don do `npm install react 
 
 **Animation nko?** No be me plain CSS and JS animations go kill! My mama still dey house o!
 
-**Monorepo?** Bro, I want organization and I want `npm run dev` to work without me having to manually `cd` into both `frontend` and `cms` folders in different terminal tabs to do `npm run dev`. That one na stress!
+**Monorepo?** Bro, I want organization and I want `npm run dev` to work without me having to manually `cd` into both `frontend` and `cms` folders in different terminal tabs to do `npm run dev`. That one  na premium stress!
 
 ---
 
@@ -54,6 +54,7 @@ project-root/
 - I'm very familiar with it
 - Their TypeScript integration na top notch
 - Content management without wahala
+- The studio is simple and powerfull
 
 ---
 
@@ -63,7 +64,7 @@ project-root/
 
 **Person fit ask:** "But bro, why you no use Turbo repo? I don see am for plenty tutorial!"
 
-**Real Talk:** Turbo repo na overkill for wetin we dey do! npm workspaces don give us 80% of wetin we need with 20% of the complexity. We no need all that caching and build orchestration wahala for portfolio website, infact all this package.jsons for just two pages is a whole lot, seems like overengineering looking from the outside, but if you sit down and reason the matter wella, una go know say nha condition make crayfish bend.
+**Real Talk:** Turborepo na overkill for wetin we dey do! npm workspaces don give us 80% of wetin we need with 20% of the complexity. We no need all that caching and build orchestration wahala for portfolio website, infact all this package.jsons for just two pages is a whole lot, seems like overengineering looking from the outside, but if you sit down and reason the matter wella, una go know say nha condition make crayfish bend.
 
 ### The Root Package.json Magic ✨
 
@@ -80,7 +81,7 @@ project-root/
 
 ### Tools I Added for Smooth Operation
 
-- **concurrently**: Make both apps run together with different colors for their logs (reason for choosing this is again I used it in the past)
+- **concurrently**: Make both apps run together side by side (reason for choosing this is again I used it in the past)
 - **rimraf**: Cross-platform way to delete `node_modules` (God punish windows sha!)
 
 ---
@@ -114,8 +115,7 @@ project-root/
 3. **Set up environment variables:**
 
    ```bash
-   # Most likely the ones from sanity bro (applicable to only the frotend sha)
-
+   # Most likely the ones from sanity bro (applicable to only the frontend sha)
    ```
 
 4. **Start development servers (The Sweet Part!):**
@@ -214,24 +214,40 @@ npm run lint:fix:cms    # Auto-fix only cms
 ## Project Structure (How We Arrange Am)
 
 ```
-uthman-portfolio/
+uthman-portfolio-v1/
 ├── package.json              # Root config with workspaces and scripts
-├── node_modules/             # Shared dependencies
 ├── package-lock.json         # Root lock file
-├── frontend/
+├── frontend/                 # React application
 │   ├── app/
 │   │   ├── components/
-│   │   ├── routes/
-│   │   ├── lib/              # Helper functions an all that type shit
-│   │   └── types.ts          # would contain all the types from fetching from the sanity studio cms
-│   ├── public/
-│
-│
-├── cms/
-│   ├── schemaTypes/          #Contains all the defined schemas
-│   ├── sanity.config.ts
+│   │   │   └── effects/      # UI components and sections
+│   │   ├── hooks/            # Custom React hooks
+│   │   ├── assets/
+│   │   │   ├── styles/       # CSS and styling files
+│   │   │   └── images/       # Image assets
+│   │   ├── routes/           # Application routing
+│   │   ├── sanity/           # Sanity client configuration
+│   │   ├── sanity.cli.ts
+│   │   ├── sanity.config.ts
+│   │   ├── app.css
+│   │   ├── routes.ts         # Route definitions
+│   │   └── root.tsx
+│   ├── package.json
+│   ├── package-lock.json
+│   ├── README.md
+│   ├── tsconfig.json
+│   └── vite.config.ts
+├── cms/                      # Sanity Studio
+│   ├── sanity/
+│   ├── schemaTypes/          # Content schemas and models
+│   ├── static/
+│   ├── .gitignore
 │   ├── package.json          # CMS-specific dependencies
-│   └── package-lock.json     # CMS lock file
+│   ├── package-lock.json     # CMS lock file
+│   ├── README.md
+│   ├── sanity.cli.ts
+│   ├── sanity.config.ts      # Sanity configuration
+│   └── tsconfig.json
 └── README.md
 ```
 
@@ -330,7 +346,7 @@ The architecture fit look like overkill but trust me, it's for the best. When I 
 
 ---
 
-**Developer:** Omo, it's Bolarinwa on the Keyboard,
+**Developer:** Omo, it's Bolarinwa on the Keyboard
 
 **Version:** 1.0.0 (definitely more avenues may pop up where uthman want to cook like mad)
 
