@@ -21,7 +21,7 @@ const BillingSection:React.FC = () => {
           <h2 className="text-white text-3xl font-bold  capitalize text-center">
             Thank you for your interest
           </h2>
-          <h3 className="text-[#FFFFFF99] text-sm text-center capitalize">
+          <h3 className="text-[#FFFFFF99] text-sm text-center capitalize px-2 md:px-4">
             We would love to hear from you and discuss how we can help bring
             your digital ideas to life. Here are the different ways you can get
             in touch with me.

@@ -856,7 +856,7 @@ const BeyondPortfolioLayout: React.FC<BeyondPortfolioSectionProps> = ({
   return (
     <motion.div
       ref={containerRef}
-      className=" text-white p-4"
+      className="text-white p-4"
       variants={containerVariants}
       initial="hidden"
       animate={isInView ? "visible" : "hidden"}
@@ -865,36 +865,36 @@ const BeyondPortfolioLayout: React.FC<BeyondPortfolioSectionProps> = ({
         {/* Mobile-first responsive grid */}
         <div
           className="grid gap-3 md:gap-4 lg:gap-6
-          grid-cols-1 
-          md:grid-cols-[minmax(350px,1fr)_minmax(350px,1fr)] 
-          lg:grid-cols-[minmax(350px,1fr)_minmax(350px,1fr)_minmax(350px,1fr)]
-          sm:grid-cols-[minmax(180px,1fr)]"
+      grid-cols-1 
+      md:grid-cols-[minmax(350px,1fr)_minmax(350px,1fr)] 
+      lg:grid-cols-[minmax(350px,1fr)_minmax(350px,1fr)_minmax(350px,1fr)]
+      sm:grid-cols-[minmax(180px,1fr)]"
         >
           {/* LEFT COLUMN */}
-          <div className="lg:row-span-2 flex flex-col gap-4">
+          <div className="lg:row-span-2 flex flex-col gap-4 order-1">
             <HeaderSection />
             <div className="flex-1">
               <CurrentlyReading data={beyondPortfolioData.currentBook} />
             </div>
           </div>
 
+          {/* RIGHT COLUMN */}
+          <div className="flex flex-col gap-4 lg:row-span-2 order-2 lg:order-3">
+            <div className="flex-1">
+              <RecentWork data={beyondPortfolioData.recentWork} />
+            </div>
+            <div>
+              <Persona data={beyondPortfolioData.persona} />
+            </div>
+          </div>
+
           {/* MIDDLE COLUMN */}
-          <div className="flex flex-col gap-4 lg:row-span-2">
+          <div className="flex flex-col gap-4 lg:row-span-2 order-3 lg:order-2">
             <div className="flex-1">
               <TechStack data={beyondPortfolioData.techStack} />
             </div>
             <div className="lg:h-28">
               <Collaborators data={beyondPortfolioData.collaborators} />
-            </div>
-          </div>
-
-          {/* RIGHT COLUMN */}
-          <div className="flex flex-col gap-4 lg:row-span-2">
-            <div className="flex-1">
-              <RecentWork data={beyondPortfolioData.recentWork} />
-            </div>
-            <div className="">
-              <Persona data={beyondPortfolioData.persona} />
             </div>
           </div>
         </div>
