@@ -46,7 +46,12 @@ const Nav: React.FC<NavProps> = ({ navbar }) => {
     if (isMenuOpen) {
       document.body.classList.add("overflow-hidden");
     }
-  }, [isMenuOpen]);
+
+     if (!isMenuOpen) {
+       document.body.classList.remove("overflow-hidden");
+     }
+
+  }, [isMenuOpen, setIsMenuOpen]);
 
   const navItems = [
     { name: "Home", href: "/", badgeText: "H" },
@@ -56,6 +61,7 @@ const Nav: React.FC<NavProps> = ({ navbar }) => {
 
   const toggleMenu = () => {
     setIsMenuOpen(!isMenuOpen);
+
   };
 
   const handleNavClick = (href: string) => {
