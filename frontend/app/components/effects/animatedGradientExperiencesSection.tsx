@@ -122,7 +122,7 @@ const AnimatedGradientExperiencesSection: React.FC = memo(() => {
     particleAnimationRef.current = requestAnimationFrame(animateParticles);
   }, []);
 
-  // Mouse interaction for desktop
+  // Mouse interaction for desktop - FIXED: Much more subtle effects
   const handleMouseMove = useCallback(
     (e: MouseEvent) => {
       if (isMobile || !containerRef.current || !backgroundRef.current) return;
@@ -139,23 +139,23 @@ const AnimatedGradientExperiencesSection: React.FC = memo(() => {
         const x = (e.clientX - rect.left) / rect.width;
         const y = (e.clientY - rect.top) / rect.height;
 
-        // Create parallax effect based on mouse position
-        const moveX = (x - 0.5) * 20; // Max 20px movement
-        const moveY = (y - 0.5) * 20;
+        // Create parallax effect based on mouse position - reduced movement
+        const moveX = (x - 0.5) * 8; // Reduced from 20px to 8px
+        const moveY = (y - 0.5) * 8; // Reduced from 20px to 8px
 
-        // Apply subtle background movement and opacity changes
-        backgroundRef.current.style.transform = `translate3d(${moveX}px, ${moveY}px, 0) scale(1.05)`;
+        // Apply subtle background movement
+        backgroundRef.current.style.transform = `translate3d(${moveX}px, ${moveY}px, 0) scale(1.02)`; // Reduced scale from 1.05 to 1.02
 
-        // Color intensity based on mouse position (for potential overlay effects)
+        // Much more subtle color effects - this was the main culprit
         const leftInfluence = Math.max(0, (0.5 - x) * 2);
         const rightInfluence = Math.max(0, (x - 0.5) * 2);
 
-        // You can use these values for additional overlay effects if needed
-        const tealIntensity = 0.1 + leftInfluence * 0.2;
-        const indigoIntensity = 0.1 + rightInfluence * 0.2;
+        // Dramatically reduced filter intensity
+        const hueShift = leftInfluence * 8 - rightInfluence * 8; // Reduced from 30 to 8 degrees
+        const brightnessEffect = 1 + (leftInfluence + rightInfluence) * 0.03; // Reduced from 0.1 to 0.03 (max 106% brightness)
 
-        // Apply color overlay (optional)
-        backgroundRef.current.style.filter = `hue-rotate(${leftInfluence * 30 - rightInfluence * 30}deg) brightness(${1 + (leftInfluence + rightInfluence) * 0.1})`;
+        // Apply much gentler color overlay
+        backgroundRef.current.style.filter = `hue-rotate(${hueShift}deg) brightness(${brightnessEffect})`;
 
         lastUpdateRef.current = now;
         rafRef.current = 0;

@@ -175,16 +175,6 @@ const ExperiencesTimeline: React.FC<ExperiencesTimelineProps> = ({
 
   // Header animations
   const headerOpacity = useTransform(containerScrollProgress, [0, 0.3], [0, 1]);
-  const headerY = useTransform(
-    containerScrollProgress,
-    [0, 0.3],
-    isMobile ? [-20, 0] : [-30, 0] // Mobile: less dramatic movement
-  );
-  const headerScale = useTransform(
-    containerScrollProgress,
-    [0, 0.3],
-    isMobile ? [0.99, 1] : [0.98, 1] // Mobile: minimal scaling
-  );
 
   return (
     <div className="relative py-16 font-arial">
@@ -201,14 +191,14 @@ const ExperiencesTimeline: React.FC<ExperiencesTimelineProps> = ({
       </motion.div>
 
       <div className="w-full p-4 sm:p-6 lg:p-8" ref={containerRef}>
-        <div className="max-w-4xl mx-auto overflow-x-hidden">
+        <div className="max-w-4xl mx-auto overflow-hidden">
           {/* Section Header */}
           <motion.div
             className="mb-8 sm:mb-12 lg:mb-16 relative"
             style={{
               opacity: headerOpacity,
-              y: headerY,
-              scale: headerScale,
+            
+             
             }}
           >
             <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-white mb-2 text-center">
