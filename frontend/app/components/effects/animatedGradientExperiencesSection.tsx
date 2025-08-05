@@ -1,15 +1,15 @@
 import React, { useEffect, useRef, useState, useCallback, memo } from "react";
+import animatedGradientExperiences from "../../assets/images/animatedGradientExperiences.png";
 
-const AnimatedGradientExperiencesSection:React.FC = memo(() => {
+const AnimatedGradientExperiencesSection: React.FC = memo(() => {
   const containerRef = useRef<HTMLDivElement>(null);
-  const svgRef = useRef<SVGSVGElement>(null);
+  const particleContainerRef = useRef<HTMLDivElement>(null);
+  const backgroundRef = useRef<HTMLDivElement>(null);
   const [isMobile, setIsMobile] = useState(false);
   const rafRef = useRef<number>(0);
   const lastUpdateRef = useRef<number>(0);
   const particleAnimationRef = useRef<number>(0);
   const startTimeRef = useRef<number>(0);
-
-
 
   // Confetti colors for particles
   const particleColors = [
@@ -26,16 +26,17 @@ const AnimatedGradientExperiencesSection:React.FC = memo(() => {
   const particles = useRef(
     Array.from({ length: 45 }, (_, i) => ({
       id: i,
-      x: Math.random() * 1440,
-      y: Math.random() * 1832,
-      vx: (Math.random() - 0.5) * 2, // Velocity X
-      vy: (Math.random() - 0.5) * 2, // Velocity Y
+      x: Math.random() * 100, // Using percentage for responsive design
+      y: Math.random() * 100,
+      vx: (Math.random() - 0.5) * 0.2, // Velocity X (percentage-based)
+      vy: (Math.random() - 0.5) * 0.2, // Velocity Y (percentage-based)
       size: Math.random() * 6 + 3,
       rotation: Math.random() * 360,
       rotationSpeed: (Math.random() - 0.5) * 4,
       color: particleColors[Math.floor(Math.random() * particleColors.length)],
       opacity: Math.random() * 0.4 + 0.6,
       life: Math.random() * 100, // For subtle pulsing
+      element: null as HTMLDivElement | null,
     }))
   ).current;
 
@@ -45,18 +46,42 @@ const AnimatedGradientExperiencesSection:React.FC = memo(() => {
 
   const FRAME_RATE = 33; // ~30fps for smooth performance
 
+  // Create particle DOM elements
+  const createParticleElements = useCallback(() => {
+    if (!particleContainerRef.current) return;
+
+    // Clear existing particles
+    particleContainerRef.current.innerHTML = "";
+
+    particles.forEach((particle) => {
+      const element = document.createElement("div");
+      element.className =
+        "absolute pointer-events-none transition-opacity duration-300";
+      element.style.cssText = `
+        width: ${particle.size}px;
+        height: ${particle.size}px;
+        background-color: ${particle.color};
+        border-radius: 2px;
+        opacity: ${particle.opacity};
+        will-change: transform, opacity;
+        transform: translate3d(${particle.x}%, ${particle.y}%, 0) rotate(${particle.rotation}deg);
+      `;
+
+      particle.element = element;
+      particleContainerRef.current?.appendChild(element);
+    });
+  }, []);
+
   // Brownian motion particle animation
   const animateParticles = useCallback((timestamp: number) => {
     if (startTimeRef.current === 0) {
       startTimeRef.current = timestamp;
     }
 
-    const deltaTime = 0.016; // ~60fps normalized
-
     particles.forEach((particle) => {
       // Brownian motion: add random walk to velocity
-      particle.vx += (Math.random() - 0.5) * 0.1;
-      particle.vy += (Math.random() - 0.5) * 0.1;
+      particle.vx += (Math.random() - 0.5) * 0.01; // Scaled for percentage movement
+      particle.vy += (Math.random() - 0.5) * 0.01;
 
       // Apply drag to prevent runaway particles
       particle.vx *= 0.99;
@@ -67,35 +92,30 @@ const AnimatedGradientExperiencesSection:React.FC = memo(() => {
       particle.y += particle.vy;
 
       // Bounce off edges with some randomness
-      if (particle.x < 0 || particle.x > 1440) {
-        particle.vx = -particle.vx * 0.8 + (Math.random() - 0.5) * 0.5;
-        particle.x = Math.max(0, Math.min(1440, particle.x));
+      if (particle.x < 0 || particle.x > 100) {
+        particle.vx = -particle.vx * 0.8 + (Math.random() - 0.5) * 0.05;
+        particle.x = Math.max(0, Math.min(100, particle.x));
       }
-      if (particle.y < 0 || particle.y > 1832) {
-        particle.vy = -particle.vy * 0.8 + (Math.random() - 0.5) * 0.5;
-        particle.y = Math.max(0, Math.min(1832, particle.y));
+      if (particle.y < 0 || particle.y > 100) {
+        particle.vy = -particle.vy * 0.8 + (Math.random() - 0.5) * 0.05;
+        particle.y = Math.max(0, Math.min(100, particle.y));
       }
 
       // Update rotation
       particle.rotation += particle.rotationSpeed;
 
       // Update life for subtle pulsing
-      particle.life += deltaTime * 50;
+      particle.life += 0.8;
 
-      // Update particle element
-      const particleElement = svgRef.current?.querySelector(
-        `#particle-${particle.id}`
-      ) as SVGElement;
-      if (particleElement) {
+      // Update particle element with CSS transforms
+      if (particle.element) {
         // Subtle pulsing opacity
         const pulse = Math.sin(particle.life * 0.02) * 0.2;
         const currentOpacity = Math.max(0.3, particle.opacity + pulse);
 
-        particleElement.setAttribute(
-          "transform",
-          `translate(${particle.x}, ${particle.y}) rotate(${particle.rotation})`
-        );
-        particleElement.setAttribute("opacity", currentOpacity.toString());
+        // Use CSS transform for better performance
+        particle.element.style.transform = `translate3d(${particle.x}%, ${particle.y}%, 0) rotate(${particle.rotation}deg)`;
+        particle.element.style.opacity = currentOpacity.toString();
       }
     });
 
@@ -105,7 +125,7 @@ const AnimatedGradientExperiencesSection:React.FC = memo(() => {
   // Mouse interaction for desktop
   const handleMouseMove = useCallback(
     (e: MouseEvent) => {
-      if (isMobile || !containerRef.current || !svgRef.current) return;
+      if (isMobile || !containerRef.current || !backgroundRef.current) return;
 
       const now = performance.now();
       if (now - lastUpdateRef.current < FRAME_RATE) return;
@@ -114,29 +134,28 @@ const AnimatedGradientExperiencesSection:React.FC = memo(() => {
 
       rafRef.current = requestAnimationFrame(() => {
         const rect = containerRef.current?.getBoundingClientRect();
-        if (!rect || !svgRef.current) return;
+        if (!rect || !backgroundRef.current) return;
 
         const x = (e.clientX - rect.left) / rect.width;
+        const y = (e.clientY - rect.top) / rect.height;
 
-        // Calculate color intensity based on mouse position
-        // Left side (0-0.5): More teal, less indigo
-        // Right side (0.5-1): More indigo, less teal
-        const leftInfluence = Math.max(0, (0.5 - x) * 2); // 1 at far left, 0 at center
-        const rightInfluence = Math.max(0, (x - 0.5) * 2); // 0 at center, 1 at far right
+        // Create parallax effect based on mouse position
+        const moveX = (x - 0.5) * 20; // Max 20px movement
+        const moveY = (y - 0.5) * 20;
 
-        // Base intensity + position-based modulation
-        const tealIntensity = 0.4 + leftInfluence * 0.6;
-        const indigoIntensity = 0.4 + rightInfluence * 0.6;
+        // Apply subtle background movement and opacity changes
+        backgroundRef.current.style.transform = `translate3d(${moveX}px, ${moveY}px, 0) scale(1.05)`;
 
-        // Update CSS variables for the gradient paths
-        svgRef.current.style.setProperty(
-          "--teal-opacity",
-          tealIntensity.toString()
-        );
-        svgRef.current.style.setProperty(
-          "--indigo-opacity",
-          indigoIntensity.toString()
-        );
+        // Color intensity based on mouse position (for potential overlay effects)
+        const leftInfluence = Math.max(0, (0.5 - x) * 2);
+        const rightInfluence = Math.max(0, (x - 0.5) * 2);
+
+        // You can use these values for additional overlay effects if needed
+        const tealIntensity = 0.1 + leftInfluence * 0.2;
+        const indigoIntensity = 0.1 + rightInfluence * 0.2;
+
+        // Apply color overlay (optional)
+        backgroundRef.current.style.filter = `hue-rotate(${leftInfluence * 30 - rightInfluence * 30}deg) brightness(${1 + (leftInfluence + rightInfluence) * 0.1})`;
 
         lastUpdateRef.current = now;
         rafRef.current = 0;
@@ -147,7 +166,7 @@ const AnimatedGradientExperiencesSection:React.FC = memo(() => {
 
   // Scroll interaction for mobile
   const handleScroll = useCallback(() => {
-    if (!isMobile || !svgRef.current) return;
+    if (!isMobile || !backgroundRef.current) return;
 
     const now = performance.now();
     if (now - lastUpdateRef.current < FRAME_RATE) return;
@@ -155,7 +174,7 @@ const AnimatedGradientExperiencesSection:React.FC = memo(() => {
     if (rafRef.current) return;
 
     rafRef.current = requestAnimationFrame(() => {
-      if (!svgRef.current) return;
+      if (!backgroundRef.current) return;
 
       const scrollTop =
         window.pageYOffset || document.documentElement.scrollTop;
@@ -163,20 +182,27 @@ const AnimatedGradientExperiencesSection:React.FC = memo(() => {
         document.documentElement.scrollHeight - window.innerHeight;
       const scrollProgress = scrollHeight > 0 ? scrollTop / scrollHeight : 0;
 
-      // Create wave-like color transitions based on scroll
-      const tealWave = Math.sin(scrollProgress * Math.PI * 2) * 0.3 + 0.7;
-      const indigoWave = Math.cos(scrollProgress * Math.PI * 2) * 0.3 + 0.7;
+      // Create wave-like movement based on scroll
+      const waveOffset = Math.sin(scrollProgress * Math.PI * 2) * 10;
+      const scaleEffect = 1 + Math.cos(scrollProgress * Math.PI) * 0.05;
 
-      svgRef.current.style.setProperty("--teal-opacity", tealWave.toString());
-      svgRef.current.style.setProperty(
-        "--indigo-opacity",
-        indigoWave.toString()
-      );
+      backgroundRef.current.style.transform = `translate3d(0, ${waveOffset}px, 0) scale(${scaleEffect})`;
+
+      // Color shifting based on scroll
+      const hueShift = scrollProgress * 60; // Max 60 degree hue shift
+      backgroundRef.current.style.filter = `hue-rotate(${hueShift}deg) brightness(${1 + scrollProgress * 0.2})`;
 
       lastUpdateRef.current = now;
       rafRef.current = 0;
     });
   }, [isMobile]);
+
+  // Static particles (the original decorative ones)
+  const staticParticles = [
+    { x: 11.5, y: 84.1, color: "#FF6633", size: 12 },
+    { x: 8.3, y: 32.0, color: "#FFCC33", size: 12 },
+    { x: 86.0, y: 45.6, color: "#66CC66", size: 12 },
+  ];
 
   useEffect(() => {
     handleResize();
@@ -185,11 +211,8 @@ const AnimatedGradientExperiencesSection:React.FC = memo(() => {
   }, [handleResize]);
 
   useEffect(() => {
-    // Set initial values
-    if (svgRef.current) {
-      svgRef.current.style.setProperty("--teal-opacity", "0.4");
-      svgRef.current.style.setProperty("--indigo-opacity", "0.4");
-    }
+    // Create particle elements
+    createParticleElements();
 
     document.addEventListener("mousemove", handleMouseMove, { passive: true });
     window.addEventListener("scroll", handleScroll, { passive: true });
@@ -207,126 +230,47 @@ const AnimatedGradientExperiencesSection:React.FC = memo(() => {
         cancelAnimationFrame(particleAnimationRef.current);
       }
     };
-  }, [handleMouseMove, handleScroll, animateParticles]);
+  }, [handleMouseMove, handleScroll, animateParticles, createParticleElements]);
 
   return (
     <div
       className="absolute inset-0 w-full h-full overflow-hidden pointer-events-none"
       ref={containerRef}
     >
-      <svg
-        className="absolute inset-0 w-full h-full pointer-events-none z-0"
-        viewBox="0 0 1440 1832"
-        fill="none"
-        xmlns="http://www.w3.org/2000/svg"
-        preserveAspectRatio="xMidYMid slice"
-        ref={svgRef}
-        style={
-          {
-            "--teal-opacity": "0.4",
-            "--indigo-opacity": "0.4",
-          } as React.CSSProperties
-        }
-      >
-        <g clipPath="url(#clip0_1_483)">
-          <rect width={1440} height={1832} fill="#04070D" />
+      {/* PNG Background */}
+      <div
+        ref={backgroundRef}
+        className="absolute inset-0 w-full h-full bg-cover bg-center bg-no-repeat transition-transform duration-75 ease-out"
+        style={{
+          backgroundImage: `url(${animatedGradientExperiences})`,
+          willChange: "transform, filter",
+          transform: "translate3d(0, 0, 0) scale(1.05)", // Slight oversizing for parallax
+        }}
+      />
 
-          {/* Your original gradient shapes with CSS variable integration */}
-          <g opacity="var(--indigo-opacity)" filter="url(#filter0_f_1_483)">
-            <path
-              d="M1546.95 782.704L1333.03 731.317L1243.67 666.654L1270.23 496.142L1445.65 476.576L1444.04 354.832L1646.31 300.577L1776.6 331.876L1694.17 597.982L1566.89 631.172L1546.95 782.704Z"
-              fill="#615FFF"
-            />
-          </g>
+      {/* Static decorative particles */}
+      {staticParticles.map((particle, index) => (
+        <div
+          key={`static-${index}`}
+          className="absolute pointer-events-none"
+          style={{
+            left: `${particle.x}%`,
+            top: `${particle.y}%`,
+            width: `${particle.size}px`,
+            height: `${particle.size}px`,
+            backgroundColor: particle.color,
+            borderRadius: "2px",
+            transform: "rotate(45deg)",
+          }}
+        />
+      ))}
 
-          <g opacity="var(--teal-opacity)" filter="url(#filter1_f_1_483)">
-            <path
-              d="M-142.779 395.667L-159.293 615.046L-125.068 719.911L45.3961 746.783L117.688 585.755L233.103 624.528L346.632 448.553L356.691 314.931L78.1241 312.013L7.5916 423.031L-142.779 395.667Z"
-              fill="#00D5BE"
-            />
-          </g>
-
-          {/* Your original static particles */}
-          <path
-            d="M165.957 1541.24H177.285L174.941 1554.77H163.613L165.957 1541.24Z"
-            fill="#FF6633"
-          />
-          <path
-            d="M118.957 586.592H130.285L127.941 600.117H116.613L118.957 586.592Z"
-            fill="#FFCC33"
-          />
-          <path
-            d="M1237.96 835.543H1249.29L1246.94 849.068H1235.61L1237.96 835.543Z"
-            fill="#66CC66"
-          />
-
-          {/* Animated confetti particles */}
-          {particles.map((particle) => (
-            <g key={particle.id} id={`particle-${particle.id}`}>
-              <rect
-                width={particle.size}
-                height={particle.size}
-                rx="1"
-                fill={particle.color}
-                opacity={particle.opacity}
-                style={{
-                  willChange: "transform, opacity",
-                  transformOrigin: `${particle.size / 2}px ${particle.size / 2}px`,
-                }}
-              />
-            </g>
-          ))}
-        </g>
-
-        {/* Your original filter definitions */}
-        <defs>
-          <filter
-            id="filter0_f_1_483"
-            x={843.665}
-            y={-99.4232}
-            width={1332.94}
-            height={1282.13}
-            filterUnits="userSpaceOnUse"
-            colorInterpolationFilters="sRGB"
-          >
-            <feFlood floodOpacity={0} result="BackgroundImageFix" />
-            <feBlend
-              mode="normal"
-              in="SourceGraphic"
-              in2="BackgroundImageFix"
-              result="shape"
-            />
-            <feGaussianBlur
-              stdDeviation={200}
-              result="effect1_foregroundBlur_1_483"
-            />
-          </filter>
-          <filter
-            id="filter1_f_1_483"
-            x={-559.293}
-            y={-87.9874}
-            width={1315.98}
-            height={1234.77}
-            filterUnits="userSpaceOnUse"
-            colorInterpolationFilters="sRGB"
-          >
-            <feFlood floodOpacity={0} result="BackgroundImageFix" />
-            <feBlend
-              mode="normal"
-              in="SourceGraphic"
-              in2="BackgroundImageFix"
-              result="shape"
-            />
-            <feGaussianBlur
-              stdDeviation={200}
-              result="effect1_foregroundBlur_1_483"
-            />
-          </filter>
-          <clipPath id="clip0_1_483">
-            <rect width={1440} height={1832} fill="white" />
-          </clipPath>
-        </defs>
-      </svg>
+      {/* Animated particles container */}
+      <div
+        ref={particleContainerRef}
+        className="absolute inset-0 w-full h-full pointer-events-none"
+        style={{ willChange: "contents" }}
+      />
     </div>
   );
 });

@@ -1,9 +1,8 @@
-.mobile-testimonial-swiper {
+/* .mobile-testimonial-swiper {
   padding: 50px 0 70px 0;
   overflow: visible;
 }
 
-/* hacking both of these for consistency */
 .mobile-testimonial-swiper .swiper-slide {
   width: 280px;
   min-height: clamp(240px, 40vh, 280px);
@@ -63,4 +62,4 @@
   background: rgba(31, 41, 55, 0.95);
   transform: scale(1.05);
   transition: all 0.2s ease;
-}
+} */

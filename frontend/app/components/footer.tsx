@@ -89,8 +89,8 @@ const Footer: React.FC<FooterProps> = ({ footerData }) => {
                   <div className="grid gap-8 sm:gap-10 lg:gap-12 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
                     {/* Services */}
                     <div>
-                      <h2 className="text-base sm:text-lg md:text-xl font-medium mb-4 sm:mb-5 lg:mb-6">
-                        Service
+                      <h2 className="text-base sm:text-lg md:text-xl font-medium mb-4 sm:mb-5 lg:mb-6 text-white">
+                        Services
                       </h2>
                       <div className="space-y-2 sm:space-y-3">
                         <p className="text-gray-300 text-xs sm:text-sm md:text-base italic">
@@ -110,7 +110,7 @@ const Footer: React.FC<FooterProps> = ({ footerData }) => {
 
                     {/* Social links */}
                     <div>
-                      <h2 className="text-base sm:text-lg md:text-xl font-medium mb-4 sm:mb-5 lg:mb-6">
+                      <h2 className="text-base sm:text-lg md:text-xl font-medium mb-4 sm:mb-5 lg:mb-6 text-white">
                         Connect
                       </h2>
                       <div className="space-y-2 sm:space-y-3">

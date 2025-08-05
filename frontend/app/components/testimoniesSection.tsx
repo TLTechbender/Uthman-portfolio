@@ -9,7 +9,7 @@ import {
   Pagination,
 } from "swiper/modules";
 import { FaStar } from "react-icons/fa6";
-import "../assets/styles/swiperStyles.css";
+// import "../assets/styles/swiperStyles.css";
 import "swiper/css";
 import "swiper/css/effect-flip";
 import "swiper/css/navigation";

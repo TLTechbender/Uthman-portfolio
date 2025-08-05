@@ -1,11 +1,26 @@
 @import "tailwindcss";
 
-font-arial {
-  font-family: Arial, Helvetica, sans-serif;
+@font-face {
+  font-family: "Charmonman";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("../app/assets/fonts/Charmonman-Regular.ttf") format("truetype");
 }
 
-font-charmonman {
+.font-charmonman {
   font-family: "Charmonman", cursive;
-
   font-style: normal;
+}
+
+@font-face {
+  font-family: "Charmonman";
+  font-style: normal;
+
+  font-display: swap;
+  src: url("../app/assets/fonts/ARIAL.ttf") format("truetype");
+}
+
+.font-arial {
+  font-family: Arial, Helvetica, sans-serif;
 }

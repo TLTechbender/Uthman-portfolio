@@ -110,7 +110,7 @@ const FooterCredit:React.FC = () => {
           transition={{ delay: 0.3 }}
         >
           <motion.p
-            className="text-xl text-gray-500 mb-6 font-mono"
+            className="text-sm md:text-lg lg:text-xl text-gray-500 mb-6 font-mono"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 1.2 }}

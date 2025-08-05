@@ -1,5 +1,5 @@
 import { useScroll, motion, useTransform } from "framer-motion";
-import { useRef } from "react";
+import { useRef, useEffect, useState } from "react";
 import AnimatedGradientExperiencesSection from "./effects/animatedGradientExperiencesSection";
 import ExperienceCard from "./experiencesCard";
 import type { Experience } from "~/sanity/interfaces/homepage";
@@ -8,44 +8,80 @@ interface ExperiencesTimelineProps {
   experiences: Experience[];
 }
 
-// Enhanced Experience Card wrapper - simplified without position tracking
+// Enhanced Experience Card wrapper - fixed for mobile
 const AnimatedExperienceCard: React.FC<
   Experience & {
     index: number;
   }
 > = (props) => {
   const cardRef = useRef<HTMLDivElement>(null);
+  const [isMobile, setIsMobile] = useState(false);
   const isEven = props.index % 2 === 0;
 
-  // Use Framer Motion's useScroll for this specific card
+  // Detect mobile viewport
+  useEffect(() => {
+    const checkMobile = () => setIsMobile(window.innerWidth < 768);
+    checkMobile();
+    window.addEventListener("resize", checkMobile);
+    return () => window.removeEventListener("resize", checkMobile);
+  }, []);
+
+  // Adjusted scroll configuration for better mobile behavior
   const { scrollYProgress } = useScroll({
     target: cardRef,
-    offset: ["start end", "end start"],
+    // More conservative offsets - cards stay visible longer
+    offset: isMobile
+      ? ["start 0.9", "end 0.1"] // Mobile: more generous visibility window
+      : ["start end", "end start"], // Desktop: original behavior
   });
 
-  // Transform scroll progress into animation values
-  const opacity = useTransform(scrollYProgress, [0, 0.2, 0.8, 1], [0, 1, 1, 0]);
+  // More mobile-friendly opacity curve
+  const opacity = useTransform(
+    scrollYProgress,
+    isMobile
+      ? [0, 0.15, 0.85, 1] // Mobile: fade in/out less aggressively
+      : [0, 0.2, 0.8, 1], // Desktop: original curve
+    [0, 1, 1, 0]
+  );
+
+  // Gentler translation values for mobile
   const translateX = useTransform(
     scrollYProgress,
     [0, 0.3, 1],
-    [isEven ? -60 : 60, 0, 0]
+    isMobile
+      ? [isEven ? -30 : 30, 0, 0] // Mobile: less dramatic slide
+      : [isEven ? -60 : 60, 0, 0] // Desktop: original values
   );
-  const translateY = useTransform(scrollYProgress, [0, 0.3, 1], [40, 0, 0]);
+
+  const translateY = useTransform(
+    scrollYProgress,
+    [0, 0.3, 1],
+    isMobile ? [20, 0, 0] : [40, 0, 0] // Mobile: less vertical movement
+  );
+
   const scale = useTransform(
     scrollYProgress,
     [0, 0.3, 0.8, 1],
-    [0.95, 1, 1, 0.98]
+    isMobile
+      ? [0.98, 1, 1, 0.99] // Mobile: minimal scaling
+      : [0.95, 1, 1, 0.98] // Desktop: original scaling
   );
 
-  // Filter effects
-  const brightness = useTransform(scrollYProgress, [0, 0.3, 0.8], [0.9, 1, 1]);
+  // Filter effects - toned down for mobile
+  const brightness = useTransform(
+    scrollYProgress,
+    [0, 0.3, 0.8],
+    isMobile ? [0.95, 1, 1] : [0.9, 1, 1]
+  );
   const contrast = useTransform(scrollYProgress, [0, 0.3, 0.8], [1, 1.1, 1.1]);
 
-  // Glow effect opacity
+  // Glow effect opacity - more subtle on mobile
   const glowOpacity = useTransform(
     scrollYProgress,
     [0, 0.4, 0.8, 1],
-    [0, 0, 1, 0.8]
+    isMobile
+      ? [0, 0, 0.6, 0.4] // Mobile: more subtle glow
+      : [0, 0, 1, 0.8] // Desktop: original glow
   );
 
   return (
@@ -61,9 +97,9 @@ const AnimatedExperienceCard: React.FC<
       initial={{ opacity: 0 }}
       transition={{
         type: "spring",
-        stiffness: 100,
-        damping: 30,
-        delay: props.index * 0.1,
+        stiffness: isMobile ? 120 : 100, // Slightly snappier on mobile
+        damping: isMobile ? 35 : 30, // More damped on mobile
+        delay: props.index * (isMobile ? 0.05 : 0.1), // Faster stagger on mobile
       }}
     >
       <motion.div
@@ -98,38 +134,56 @@ const ExperiencesTimeline: React.FC<ExperiencesTimelineProps> = ({
   experiences,
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
+  const [isMobile, setIsMobile] = useState(false);
 
-  // Use Framer Motion's useScroll for container-level animations
+  // Detect mobile viewport
+  useEffect(() => {
+    const checkMobile = () => setIsMobile(window.innerWidth < 768);
+    checkMobile();
+    window.addEventListener("resize", checkMobile);
+    return () => window.removeEventListener("resize", checkMobile);
+  }, []);
+
+  // Container-level scroll with mobile adjustments
   const { scrollYProgress: containerScrollProgress } = useScroll({
     target: containerRef,
-    offset: ["start end", "end start"],
+    offset: isMobile
+      ? ["start 0.8", "end 0.2"] // Mobile: more conservative
+      : ["start end", "end start"], // Desktop: original
   });
 
-  // Use Framer Motion's useScroll for timeline line animation
+  // Timeline line animation
   const { scrollYProgress: timelineProgress } = useScroll({
     target: containerRef,
     offset: ["start center", "end center"],
   });
 
-  // Transform container scroll into animation values
+  // Container animations with mobile considerations
   const containerOpacity = useTransform(
     containerScrollProgress,
-    [0, 0.2, 0.8, 1],
+    isMobile
+      ? [0, 0.15, 0.85, 1] // Mobile: gentler fade
+      : [0, 0.2, 0.8, 1], // Desktop: original
     [0, 1, 1, 1]
   );
+
   const containerScale = useTransform(
     containerScrollProgress,
     [0, 0.2],
-    [0.98, 1]
+    isMobile ? [0.99, 1] : [0.98, 1] // Mobile: minimal scaling
   );
 
   // Header animations
   const headerOpacity = useTransform(containerScrollProgress, [0, 0.3], [0, 1]);
-  const headerY = useTransform(containerScrollProgress, [0, 0.3], [-30, 0]);
+  const headerY = useTransform(
+    containerScrollProgress,
+    [0, 0.3],
+    isMobile ? [-20, 0] : [-30, 0] // Mobile: less dramatic movement
+  );
   const headerScale = useTransform(
     containerScrollProgress,
     [0, 0.3],
-    [0.98, 1]
+    isMobile ? [0.99, 1] : [0.98, 1] // Mobile: minimal scaling
   );
 
   return (
@@ -174,7 +228,6 @@ const ExperiencesTimeline: React.FC<ExperiencesTimelineProps> = ({
                   top: "1rem",
                   height: "calc(100% - 1rem)",
                   scaleY: timelineProgress,
-                  // Mask the line so it doesn't extend beyond the last dot
                   maskImage: `linear-gradient(to bottom, 
                     transparent 0%, 
                     black 2rem, 
@@ -189,10 +242,9 @@ const ExperiencesTimeline: React.FC<ExperiencesTimelineProps> = ({
               />
             </div>
 
-            {/* Timeline Dots Container - separate from line */}
+            {/* Timeline Dots Container */}
             <div className="absolute left-4 sm:left-6 top-0 w-0.5 h-full">
               {experiences.map((_, index) => {
-                // Simple uniform distribution based on number of experiences
                 const progress = index / Math.max(experiences.length - 1, 1);
                 const dotProgress = useTransform(
                   timelineProgress,
@@ -204,7 +256,11 @@ const ExperiencesTimeline: React.FC<ExperiencesTimelineProps> = ({
                   [0, 1, 1]
                 );
 
-                const dotScale = useTransform(dotProgress, [0, 1], [0.5, 1]);
+                const dotScale = useTransform(
+                  dotProgress,
+                  [0, 1],
+                  isMobile ? [0.7, 1] : [0.5, 1] // Mobile: less dramatic scaling
+                );
                 const dotOpacity = useTransform(dotProgress, [0, 1], [0.3, 1]);
 
                 return (
@@ -212,7 +268,7 @@ const ExperiencesTimeline: React.FC<ExperiencesTimelineProps> = ({
                     key={index}
                     className="absolute w-3 h-3 sm:w-4 sm:h-4 bg-white rounded-full border-2 sm:border-4 border-[#0FB492] transform -translate-x-1/2 z-10"
                     style={{
-                      top: `${2 + progress * 96}%`, // 2% top margin, 96% usable space
+                      top: `${2 + progress * 96}%`,
                       scale: dotScale,
                       opacity: dotOpacity,
                     }}
@@ -233,6 +289,5 @@ const ExperiencesTimeline: React.FC<ExperiencesTimelineProps> = ({
     </div>
   );
 };
- 
 
 export default ExperiencesTimeline;

@@ -170,17 +170,10 @@ export default function Home() {
   const { homePageContentData, portfolioPageContentDataForHomepage } =
     useLoaderData<typeof loader>();
 
-  const targetScrollContainer = useRef<HTMLElement | null>(null);
-
-  //Shoutout to the the yt
-  const { scrollY } = useScroll({
-    target: targetScrollContainer,
-    offset: ["start start", "end end"],
-  });
 
 
   return (
-    <main ref={targetScrollContainer} className="flex flex-col">
+    <main className="flex flex-col">
       <>
         <HeroSection hero={homePageContentData.hero} />
       </>

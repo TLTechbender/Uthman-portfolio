@@ -3,85 +3,18 @@ import {
   motion,
   AnimatePresence,
   type Variants,
-  useScroll,
-  useTransform,
   useInView,
+  useReducedMotion,
 } from "framer-motion";
 import type { BeyondPortfolio } from "~/sanity/interfaces/homepage";
 import { PortableText } from "@portabletext/react";
 import { createPortal } from "react-dom";
 import weridShape from "../assets/images/weirdShape.svg";
 import { urlFor } from "~/sanity/sanityClient";
-
-//Sincerely this has balloned out of control but I don't see myself breaking it further into separate files bro
-
-// Animation variants for different entrance animations
-const getCardVariants = (animationType: string, delay: number = 0) => {
-  // Base variants structure
-  let hiddenVariant: any = { opacity: 0 };
-  let visibleVariant: any = {
-    opacity: 1,
-    transition: {
-      duration: 0.6,
-      delay: delay / 1000,
-      ease: [0.4, 0, 0.2, 1] as any,
-    },
-  };
-
-  // Add specific transforms based on animation type
-  switch (animationType) {
-    case "slideLeft":
-      hiddenVariant = { ...hiddenVariant, x: -60, y: 20 };
-      visibleVariant = {
-        ...visibleVariant,
-        x: 0,
-        y: 0,
-        scale: 1,
-      };
-      break;
-    case "slideRight":
-      hiddenVariant = { ...hiddenVariant, x: 60, y: 20 };
-      visibleVariant = {
-        ...visibleVariant,
-        x: 0,
-        y: 0,
-        scale: 1,
-      };
-      break;
-    case "scaleIn":
-      hiddenVariant = { ...hiddenVariant, scale: 0.85, y: 30 };
-      visibleVariant = {
-        ...visibleVariant,
-        scale: 1,
-        y: 0,
-      };
-      break;
-    case "fadeIn":
-      hiddenVariant = { ...hiddenVariant, y: 15 };
-      visibleVariant = {
-        ...visibleVariant,
-        y: 0,
-      };
-      break;
-    default: // slideUp
-      hiddenVariant = { ...hiddenVariant, y: 40 };
-      visibleVariant = {
-        ...visibleVariant,
-        y: 0,
-        scale: 1,
-      };
-      break;
-  }
-
-  return {
-    hidden: hiddenVariant,
-    visible: visibleVariant,
-    hover: {
-      scale: 1.02,
-      transition: { duration: 0.3, ease: "easeOut" as any },
-    },
-  } as any;
-};
+import animatedBackgroundBeyond from "../assets/images/animatedBackgroundBeyond.png";
+import animatedBackgroundBeyond2 from "../assets/images/animatedBackgroundBeyond2.png";
+import collaboratorsBackground from "../assets/images/collaboratorsBackground.png";
+import layla from "../assets/images/layla.png";
 
 // Type definitions for component props
 interface PopupData {
@@ -108,8 +41,8 @@ interface CardProps {
   children: React.ReactNode;
   className?: string;
   popup?: PopupData;
-  scrollDelay?: number;
-  animationType?: "slideUp" | "slideLeft" | "slideRight" | "scaleIn" | "fadeIn";
+  animationDelay?: number;
+  animationDirection?: "left" | "right" | "top" | "bottom" | "center";
 }
 
 interface CurrentlyReadingProps {
@@ -157,6 +90,127 @@ const popupVariants: Variants = {
     y: 10,
     transition: {
       duration: 0.15,
+    },
+  },
+};
+
+// Enhanced animation variants for cards
+const createCardVariantsDesktop = (
+  direction: "left" | "right" | "top" | "bottom" | "center",
+  isMobile: boolean,
+  shouldReduceMotion: boolean
+): Variants => {
+  // If user prefers reduced motion, use minimal animations
+  if (shouldReduceMotion) {
+    return {
+      hidden: { opacity: 0 },
+      visible: {
+        opacity: 1,
+        transition: { duration: 0.3, ease: "easeOut" },
+      },
+    };
+  }
+
+  // Mobile: Simple fade-in animations
+  if (isMobile) {
+    return {
+      hidden: {
+        opacity: 0,
+        y: 20,
+      },
+      visible: {
+        opacity: 1,
+        y: 0,
+        transition: {
+          duration: 0.6,
+          ease: [0.25, 0.25, 0.25, 1],
+        },
+      },
+    };
+  }
+
+  // Desktop: "Coming together" animations based on direction
+  const getInitialPosition = () => {
+    switch (direction) {
+      case "left":
+        return { x: -100, y: 0 };
+      case "right":
+        return { x: 100, y: 0 };
+      case "top":
+        return { x: 0, y: -100 };
+      case "bottom":
+        return { x: 0, y: 100 };
+      case "center":
+        return { x: 0, y: 0 };
+      default:
+        return { x: 0, y: 0 };
+    }
+  };
+
+  const initialPos = getInitialPosition();
+
+  return {
+    hidden: {
+      opacity: 0,
+      scale: 0.8,
+      x: initialPos.x,
+      y: initialPos.y,
+      rotateX: direction === "top" ? -15 : direction === "bottom" ? 15 : 0,
+      rotateY: direction === "left" ? -15 : direction === "right" ? 15 : 0,
+    },
+    visible: {
+      opacity: 1,
+      scale: 1,
+      x: 0,
+      y: 0,
+      rotateX: 0,
+      rotateY: 0,
+      transition: {
+        type: "spring",
+        stiffness: 100,
+        damping: 20,
+        mass: 1,
+        duration: 0.8,
+        ease: [0.25, 0.25, 0.25, 1],
+      },
+    },
+  };
+};
+
+const createMobileCardVariants = (shouldReduceMotion: boolean): Variants => {
+  if (shouldReduceMotion) {
+    return {
+      hidden: { opacity: 0 },
+      visible: {
+        opacity: 1,
+        transition: { duration: 0.3, ease: "easeOut" },
+      },
+    };
+  }
+
+  return {
+    hidden: {
+      opacity: 0,
+      y: 30, // Simple upward movement
+    },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: {
+        duration: 0.6,
+        ease: [0.25, 0.25, 0.25, 1],
+      },
+    },
+  };
+};
+
+// Container variants for staggered animations
+const containerVariants: Variants = {
+  hidden: {},
+  visible: {
+    transition: {
+      staggerChildren: 0.15,
+      delayChildren: 0.1,
     },
   },
 };
@@ -259,8 +313,8 @@ const PopupPortal: React.FC<PopupPortalProps> = ({ popup, mousePosition }) => {
         transform: "translateX(-50%)",
       }}
     >
-      <div className="bg-gray-900/95 backdrop-blur-xl border border-cyan-400/30 rounded-xl shadow-2xl w-80 max-w-[90vw] max-h-96 pointer-events-auto">
-        <div className="p-4 overflow-y-auto max-h-96 custom-scrollbar">
+      <div className="bg-gray-900/95 backdrop-blur-xl border border-cyan-400/30 rounded-xl shadow-2xl w-80 max-w-[90vw] max-h-118 pointer-events-auto">
+        <div className="p-4  max-h-118 custom-scrollbar">
           <PortableText
             value={popup.textBlock}
             components={portableTextComponents}
@@ -313,13 +367,13 @@ const MobilePopup: React.FC<MobilePopupProps> = ({ popup, onClose }) => {
   return createPortal(popupContent, document.body);
 };
 
-// ================== ENHANCED CARD COMPONENT ==================
+// ================== ENHANCED CARD COMPONENT WITH ANIMATIONS ==================
 const Card: React.FC<CardProps> = ({
   children,
   className = "",
   popup,
-  scrollDelay = 0,
-  animationType = "slideUp",
+
+  animationDirection = "center",
 }) => {
   const [isHovered, setIsHovered] = useState(false);
   const [isPopupOpen, setIsPopupOpen] = useState(false);
@@ -328,31 +382,15 @@ const Card: React.FC<CardProps> = ({
     y: 0,
   });
   const [isMobile, setIsMobile] = useState(false);
+  const shouldReduceMotion = useReducedMotion();
 
-  // Framer Motion refs and scroll tracking
-  const cardRef = useRef<HTMLDivElement>(null);
-  const isInView = useInView(cardRef, {
-    once: false,
-    margin: "-10% 0px -10% 0px",
-  });
-
-  const { scrollYProgress } = useScroll({
-    target: cardRef,
-    offset: ["start end", "end start"],
-  });
-
-  // Transform scroll progress into useful values
-  const opacity = useTransform(
-    scrollYProgress,
-    [0, 0.3, 0.7, 1],
-    [0.8, 1, 1, 0.8]
-  );
-  const scale = useTransform(
-    scrollYProgress,
-    [0, 0.3, 0.7, 1],
-    [0.95, 1, 1, 0.95]
-  );
-  const brightness = useTransform(scrollYProgress, [0, 0.5, 1], [0.9, 1, 0.9]);
+  useEffect(() => {
+    if (document !== undefined && isPopupOpen) {
+      document.body.classList.add("overflow-hidden");
+    } else if (document !== undefined && !isPopupOpen) {
+      document.body.classList.remove("overflow-hidden");
+    }
+  }, [isPopupOpen, setIsPopupOpen]);
 
   useEffect(() => {
     const checkMobile = () => {
@@ -386,101 +424,101 @@ const Card: React.FC<CardProps> = ({
     }
   };
 
-  // Get dynamic variants
-  const cardVariants = getCardVariants(animationType, scrollDelay);
+  const cardVariantsDesktop = createCardVariantsDesktop(
+    animationDirection,
+    isMobile,
+    shouldReduceMotion || false
+  );
+
+  const cardVariantsMobile = createMobileCardVariants(
+    shouldReduceMotion || false
+  );
 
   return (
-    <motion.div
-      ref={cardRef}
-      variants={cardVariants}
-      initial="hidden"
-      animate={isInView ? "visible" : "hidden"}
-      whileHover="hover"
-      className={`relative border border-cyan-400/20 rounded-2xl overflow-hidden font-arial ${
-        popup ? "cursor-pointer" : ""
-      } ${className}`}
-      onMouseMove={handleMouseMove}
-      onMouseEnter={handleMouseEnter}
-      onMouseLeave={handleMouseLeave}
-      onClick={handleClick}
-      style={
-        {
-          opacity,
-          scale,
-          filter: useTransform(brightness, (value) => `brightness(${value})`),
-        } as any
-      }
-    >
-      {/* Subtle glow effect based on scroll progress */}
+    <>
       <motion.div
-        className="absolute inset-0 rounded-2xl pointer-events-none"
+        variants={cardVariantsDesktop}
+        className={`
+      hidden  md:block relative border border-cyan-400/20 rounded-2xl overflow-hidden font-arial
+        ${popup ? "cursor-pointer" : ""}
+        ${className}
+      `}
+        onMouseMove={handleMouseMove}
+        onMouseEnter={handleMouseEnter}
+        onMouseLeave={handleMouseLeave}
+        onClick={handleClick}
         style={{
-          opacity: useTransform(
-            scrollYProgress,
-            [0, 0.3, 0.7, 1],
-            [0, 0.3, 0.3, 0]
-          ),
-          background: `
-            radial-gradient(circle at 50% 50%, 
-              rgba(6, 182, 212, 0.1) 0%,
-              rgba(34, 197, 94, 0.05) 40%,
-              transparent 70%
-            )
-          `,
+          // Add perspective for 3D effects on desktop
+          perspective: isMobile ? "none" : "1000px",
+          transformStyle: isMobile ? "flat" : "preserve-3d",
         }}
-      />
+      >
+        {children}
 
-      {children}
+        <AnimatePresence>
+          {isHovered && !isMobile && popup && (
+            <PopupPortal
+              popup={popup}
+              mousePosition={mousePosition}
+              onClose={() => setIsHovered(false)}
+            />
+          )}
+        </AnimatePresence>
+      </motion.div>
 
-      <AnimatePresence>
-        {isHovered && !isMobile && popup && (
-          <PopupPortal
-            popup={popup}
-            mousePosition={mousePosition}
-            onClose={() => setIsHovered(false)}
-          />
-        )}
-      </AnimatePresence>
+      <motion.div
+        variants={cardVariantsMobile}
+        className={`
+       md:hidden relative border border-cyan-400/20 rounded-2xl overflow-hidden font-arial
+        ${popup ? "cursor-pointer" : ""}
+        ${className}
+      `}
+        onClick={handleClick}
+      >
+        {children}
 
-      <AnimatePresence>
-        {isPopupOpen && isMobile && popup && (
-          <MobilePopup popup={popup} onClose={() => setIsPopupOpen(false)} />
-        )}
-      </AnimatePresence>
-    </motion.div>
+        <AnimatePresence>
+          {isPopupOpen && isMobile && popup && (
+            <MobilePopup popup={popup} onClose={() => setIsPopupOpen(false)} />
+          )}
+        </AnimatePresence>
+      </motion.div>
+    </>
   );
 };
 
 // Left Column Components
 const HeaderSection: React.FC = () => {
-  const headerRef = useRef<HTMLDivElement>(null);
-  const isInView = useInView(headerRef, { once: false });
+  const shouldReduceMotion = useReducedMotion();
 
-  const { scrollYProgress } = useScroll({
-    target: headerRef,
-    offset: ["start end", "end start"],
-  });
-
-  const y = useTransform(scrollYProgress, [0, 1], [-20, 20]);
-  const opacity = useTransform(scrollYProgress, [0, 0.3, 0.7, 1], [0, 1, 1, 0]);
+  const headerVariants: Variants = shouldReduceMotion
+    ? {
+        hidden: { opacity: 0 },
+        visible: { opacity: 1, transition: { duration: 0.3 } },
+      }
+    : {
+        hidden: {
+          opacity: 0,
+          y: -30,
+          scale: 0.95,
+        },
+        visible: {
+          opacity: 1,
+          y: 0,
+          scale: 1,
+          transition: {
+            duration: 0.8,
+            ease: [0.25, 0.25, 0.25, 1],
+          },
+        },
+      };
 
   return (
-    <motion.div
-      ref={headerRef}
-      className="mb-6"
-      initial={{ y: -20, opacity: 0 }}
-      animate={isInView ? { y: 0, opacity: 1 } : { y: -20, opacity: 0 }}
-      transition={{
-        duration: 0.6,
-        delay: 0.2,
-        ease: [0.4, 0, 0.2, 1],
-      }}
-      style={{ y, opacity }}
-    >
+    <motion.div className="mb-6" variants={headerVariants}>
       <p className="bg-gradient-to-r from-[#20CBA8] to-[rgba(167,252,238,0.74)] bg-clip-text text-transparent font-arial font-bold italic uppercase leading-[130%] text-base sm:text-xl mb-2">
         BEYOND PORTFOLIO
       </p>
-      <h1 className="text-2xl font-charmonman font-normal sm:text-3xl md:text-4xl lg:text-5xl  italic text-white">
+      <h1 className="text-2xl font-charmonman  font-normal sm:text-3xl md:text-4xl lg:text-5xl  italic text-white">
         Get to know more
         <br />
         <span className="block">about me</span>
@@ -492,11 +530,7 @@ const HeaderSection: React.FC = () => {
 const CurrentlyReading: React.FC<CurrentlyReadingProps> = ({ data }) => {
   if (!data) {
     return (
-      <Card
-        className="p-4 h-full bg-gray-900/50"
-        scrollDelay={100}
-        animationType="slideLeft"
-      >
+      <Card className="p-4 h-full bg-gray-900/50" animationDirection="left">
         <div className="text-gray-400 text-center">
           No reading data available
         </div>
@@ -504,7 +538,6 @@ const CurrentlyReading: React.FC<CurrentlyReadingProps> = ({ data }) => {
     );
   }
 
-  // Create popup data if popupContent exists
   const popup = data.popupContent
     ? { textBlock: data.popupContent }
     : undefined;
@@ -513,80 +546,18 @@ const CurrentlyReading: React.FC<CurrentlyReadingProps> = ({ data }) => {
     <Card
       className="px-4 pt-4 h-full relative overflow-hidden bg-gray-900/50"
       popup={popup}
-      scrollDelay={100}
-      animationType="slideLeft"
+      animationDirection="left"
     >
-      <svg
-        viewBox="0 0 342 346"
-        fill="none"
-        xmlns="http://www.w3.org/2000/svg"
-        preserveAspectRatio="xMidYMid slice"
+      <div
         className="absolute inset-0 w-full h-full"
-        height={"100%"}
-        width={`100%`}
-      >
-        <g clipPath="url(#clip0_13_823)">
-          <g filter="url(#filter0_f_13_823)">
-            <ellipse
-              cx={171.295}
-              cy={340.142}
-              rx={60.8005}
-              ry={102.778}
-              transform="rotate(-90 171.295 340.142)"
-              fill="url(#paint0_linear_13_823)"
-            />
-          </g>
-        </g>
-
-        <defs>
-          <filter
-            id="filter0_f_13_823"
-            x={-71.2548}
-            y={139.57}
-            width={485.099}
-            height={401.144}
-            filterUnits="userSpaceOnUse"
-            colorInterpolationFilters="sRGB"
-          >
-            <feFlood floodOpacity={0} result="BackgroundImageFix" />
-            <feBlend
-              mode="normal"
-              in="SourceGraphic"
-              in2="BackgroundImageFix"
-              result="shape"
-            />
-            <feGaussianBlur
-              stdDeviation={69.8857}
-              result="effect1_foregroundBlur_13_823"
-            />
-          </filter>
-          <linearGradient
-            id="paint0_linear_13_823"
-            x1={110.494}
-            y1={242.773}
-            x2={249.159}
-            y2={256.793}
-            gradientUnits="userSpaceOnUse"
-          >
-            <stop stopColor="#C6FCA6" />
-            <stop offset={1} stopColor="#A7FCEE" stopOpacity={0.74} />
-          </linearGradient>
-          <linearGradient
-            id="paint1_linear_13_823"
-            x1={-0.00000327091}
-            y1={9.10528}
-            x2={383.046}
-            y2={73.8122}
-            gradientUnits="userSpaceOnUse"
-          >
-            <stop stopColor="#C6FCA6" />
-            <stop offset={1} stopColor="#A7FCEE" stopOpacity={0.74} />
-          </linearGradient>
-          <clipPath id="clip0_13_823">
-            <rect width={342} height={346} rx={17.7102} fill="white" />
-          </clipPath>
-        </defs>
-      </svg>
+        style={{
+          backgroundImage: `url(${animatedBackgroundBeyond})`,
+          backgroundSize: "cover",
+          backgroundPosition: "center",
+          backgroundRepeat: "no-repeat",
+          opacity: "0.6",
+        }}
+      />
       <div className="relative z-10 flex flex-col h-full">
         <div className="flex items-center gap-2 mb-4">
           <img src={weridShape} className="w-12 h-12 mt-2" />
@@ -595,12 +566,12 @@ const CurrentlyReading: React.FC<CurrentlyReadingProps> = ({ data }) => {
           </h2>
         </div>
 
-        <p className="text-[#FFFFFF80] text-sm mb-6">
+        <p className="text-[#FFFFFF80] text-sm mb-2">
           {data.description || "Exploring new knowledge"}
         </p>
 
         <div className="flex-1 flex items-end justify-center overflow-hidden">
-          <div className="w-full max-w-xs h-64 overflow-hidden rounded-t-lg shadow-lg">
+          <div className="w-full max-w-[12rem] h-54 overflow-hidden rounded-t-lg shadow-lg">
             <img
               src={urlFor(data.bookImage.asset._id)
                 .format("webp")
@@ -620,11 +591,7 @@ const CurrentlyReading: React.FC<CurrentlyReadingProps> = ({ data }) => {
 const TechStack: React.FC<TechStackProps> = ({ data }) => {
   if (!data || !data.tools?.length) {
     return (
-      <Card
-        className="p-4 h-full bg-gray-900/50"
-        scrollDelay={200}
-        animationType="scaleIn"
-      >
+      <Card className="p-4 h-full bg-gray-900/50" animationDirection="top">
         <div className="text-gray-400 text-center">
           No tech stack data available
         </div>
@@ -632,74 +599,26 @@ const TechStack: React.FC<TechStackProps> = ({ data }) => {
     );
   }
 
-  // Create popup data if popupContent exists
   const popup = data.popupContent
     ? { textBlock: data.popupContent }
     : undefined;
 
   return (
     <Card
-      className="p-4 h-full bg-gray-900/50"
+      className="p-4 h-full bg-gray-900/50 relative"
       popup={popup}
-      scrollDelay={200}
-      animationType="scaleIn"
+      animationDirection="top"
     >
-      <svg
-        viewBox="0 0 342 366"
-        fill="none"
-        xmlns="http://www.w3.org/2000/svg"
-        preserveAspectRatio="xMidYMid slice"
+      <div
         className="absolute inset-0 w-full h-full"
-      >
-        <g clipPath="url(#clip0_13_841)">
-          <g filter="url(#filter0_f_13_841)">
-            <ellipse
-              cx={-15.3298}
-              cy={-24.1094}
-              rx={60.8005}
-              ry={102.778}
-              fill="url(#paint0_linear_13_841)"
-            />
-          </g>
-        </g>
-        <defs>
-          <filter
-            id="filter0_f_13_841"
-            x={-215.902}
-            y={-266.659}
-            width={401.144}
-            height={485.099}
-            filterUnits="userSpaceOnUse"
-            colorInterpolationFilters="sRGB"
-          >
-            <feFlood floodOpacity={0} result="BackgroundImageFix" />
-            <feBlend
-              mode="normal"
-              in="SourceGraphic"
-              in2="BackgroundImageFix"
-              result="shape"
-            />
-            <feGaussianBlur
-              stdDeviation={69.8857}
-              result="effect1_foregroundBlur_13_841"
-            />
-          </filter>
-          <linearGradient
-            id="paint0_linear_13_841"
-            x1={-76.1304}
-            y1={-121.478}
-            x2={62.534}
-            y2={-107.459}
-            gradientUnits="userSpaceOnUse"
-          >
-            <stop stopColor="#C6FCA6" />
-            <stop offset={1} stopColor="#A7FCEE" stopOpacity={0.74} />
-          </linearGradient>
-          <clipPath id="clip0_13_841">
-            <rect width={342} height={366} rx={17.7102} fill="white" />
-          </clipPath>
-        </defs>
-      </svg>
+        style={{
+          backgroundImage: `url(${animatedBackgroundBeyond2})`,
+          backgroundSize: "cover",
+          backgroundPosition: "center",
+          backgroundRepeat: "no-repeat",
+          opacity: "0.6",
+        }}
+      />
       <div className="flex items-center gap-2 mb-4">
         <img src={weridShape} className="w-12 h-12 mt-2" />
         <h2 className="text-lg font-semibold text-white">My Tech Stacks</h2>
@@ -711,31 +630,17 @@ const TechStack: React.FC<TechStackProps> = ({ data }) => {
 
       <div className="grid grid-cols-3 gap-4 items-center">
         {data.tools.map((tool, index) => (
-          <motion.div
+          <div
             key={index}
             className="bg-transparent border mx-auto border-cyan-400/20 rounded-xl w-fit p-[1.5rem] md:p-[1.875rem] lg:p-[2.375rem] flex items-center justify-center"
             title={tool.name || tool.alt}
-            whileHover={{
-              scale: 1.05,
-              transition: { duration: 0.2 },
-            }}
-            initial={{ opacity: 0, scale: 0.8 }}
-            animate={{
-              opacity: 1,
-              scale: 1,
-              transition: {
-                delay: index * 0.1,
-                duration: 0.3,
-                ease: "easeOut",
-              },
-            }}
           >
             <img
               src={urlFor(tool.logo.asset._id).format("webp").quality(80).url()}
               alt={tool.alt || tool.name || `Tool ${index + 1}`}
               className="w-12 h-12 object-contain"
             />
-          </motion.div>
+          </div>
         ))}
       </div>
     </Card>
@@ -745,11 +650,7 @@ const TechStack: React.FC<TechStackProps> = ({ data }) => {
 const Collaborators: React.FC<CollaboratorsProps> = ({ data }) => {
   if (!data || !data.avatars?.length) {
     return (
-      <Card
-        className="bg-teal-600 p-4 h-full"
-        scrollDelay={300}
-        animationType="slideUp"
-      >
+      <Card className="bg-teal-600 p-4 h-full" animationDirection="bottom">
         <div className="text-teal-100 text-center">
           No collaborator data available
         </div>
@@ -757,39 +658,33 @@ const Collaborators: React.FC<CollaboratorsProps> = ({ data }) => {
     );
   }
 
-  // Create popup data if popupContent exists
   const popup = data.popupContent
     ? { textBlock: data.popupContent }
     : undefined;
 
   return (
     <Card
-      className="bg-teal-600 p-4 h-full"
+      className="relative p-4 h-full"
       popup={popup}
-      scrollDelay={300}
-      animationType="slideUp"
+      animationDirection="bottom"
     >
+      <div
+        className="absolute inset-0 w-full h-full"
+        style={{
+          backgroundImage: `url(${collaboratorsBackground})`,
+          backgroundSize: "cover",
+          backgroundPosition: "center",
+          backgroundRepeat: "no-repeat",
+          opacity: "0.6",
+        }}
+      />
       <div className="flex flex-col h-full">
-        <div className="flex -space-x-2 mb-4">
+        <div className="flex -space-x-2 mb-4 realtive z-10">
           {data.avatars.map((collab, index) => (
-            <motion.div
+            <div
               key={index}
               className="w-10 h-10 rounded-full border-2 border-white overflow-hidden"
               title={collab.name || collab.alt}
-              initial={{ scale: 0, opacity: 0 }}
-              animate={{
-                scale: 1,
-                opacity: 1,
-                transition: {
-                  delay: index * 0.1,
-                  duration: 0.3,
-                  ease: "easeOut",
-                },
-              }}
-              whileHover={{
-                scale: 1.1,
-                transition: { duration: 0.2 },
-              }}
             >
               <img
                 src={urlFor(collab.avatar.asset._id)
@@ -799,11 +694,11 @@ const Collaborators: React.FC<CollaboratorsProps> = ({ data }) => {
                 alt={collab.alt || collab.name || `Collaborator ${index + 1}`}
                 className="w-full h-full object-cover"
               />
-            </motion.div>
+            </div>
           ))}
         </div>
 
-        <p className="text-[#00000099] text-sm">
+        <p className="text-[#00000099] text-sm relative z-10">
           {data.heading || "People I work with"}
         </p>
       </div>
@@ -815,11 +710,7 @@ const Collaborators: React.FC<CollaboratorsProps> = ({ data }) => {
 const RecentWork: React.FC<RecentWorkProps> = ({ data }) => {
   if (!data) {
     return (
-      <Card
-        className="p-4 h-full bg-gray-900/50"
-        scrollDelay={400}
-        animationType="slideRight"
-      >
+      <Card className="p-4 h-full bg-gray-900/50" animationDirection="right">
         <div className="text-gray-400 text-center">
           No recent work data available
         </div>
@@ -827,7 +718,6 @@ const RecentWork: React.FC<RecentWorkProps> = ({ data }) => {
     );
   }
 
-  // Create popup data if popupContent exists
   const popup = data.popupContent
     ? { textBlock: data.popupContent }
     : undefined;
@@ -836,18 +726,12 @@ const RecentWork: React.FC<RecentWorkProps> = ({ data }) => {
     <Card
       className="p-0 h-full overflow-hidden"
       popup={popup}
-      scrollDelay={400}
-      animationType="slideRight"
+      animationDirection="right"
     >
-      <motion.img
+      <img
         src={urlFor(data.workImage.asset._id).format("webp").quality(80).url()}
         alt={data.workImage?.alt || "Recent work"}
         className="w-full h-full object-cover"
-        initial={{ filter: "grayscale(100%)" }}
-        whileHover={{
-          filter: "grayscale(0%)",
-          transition: { duration: 0.3 },
-        }}
       />
     </Card>
   );
@@ -856,11 +740,7 @@ const RecentWork: React.FC<RecentWorkProps> = ({ data }) => {
 const Persona: React.FC<PersonaProps> = ({ data }) => {
   if (!data || !data.personaItems?.length) {
     return (
-      <Card
-        className="p-4 h-full bg-gray-900/50"
-        scrollDelay={500}
-        animationType="fadeIn"
-      >
+      <Card className="p-4 h-full bg-gray-900/50" animationDirection="bottom">
         <div className="text-gray-400 text-center">
           No persona data available
         </div>
@@ -868,94 +748,62 @@ const Persona: React.FC<PersonaProps> = ({ data }) => {
     );
   }
 
-  // Create popup data if popupContent exists
   const popup = data.popupContent
     ? { textBlock: data.popupContent }
     : undefined;
 
   return (
     <Card
-      className="p-4 h-full bg-gray-900/50"
+      className=" h-full bg-gray-900/50 relative"
       popup={popup}
-      scrollDelay={500}
-      animationType="fadeIn"
+      animationDirection="bottom"
     >
-      <svg
-        viewBox="0 0 342 366"
-        fill="none"
-        xmlns="http://www.w3.org/2000/svg"
-        preserveAspectRatio="xMidYMid slice"
+      <div
         className="absolute inset-0 w-full h-full"
-      >
-        <g clipPath="url(#clip0_13_841)">
-          <g filter="url(#filter0_f_13_841)">
-            <ellipse
-              cx={-15.3298}
-              cy={-24.1094}
-              rx={60.8005}
-              ry={102.778}
-              fill="url(#paint0_linear_13_841)"
-            />
-          </g>
-        </g>
-        <defs>
-          <filter
-            id="filter0_f_13_841"
-            x={-215.902}
-            y={-266.659}
-            width={401.144}
-            height={485.099}
-            filterUnits="userSpaceOnUse"
-            colorInterpolationFilters="sRGB"
-          >
-            <feFlood floodOpacity={0} result="BackgroundImageFix" />
-            <feBlend
-              mode="normal"
-              in="SourceGraphic"
-              in2="BackgroundImageFix"
-              result="shape"
-            />
-            <feGaussianBlur
-              stdDeviation={69.8857}
-              result="effect1_foregroundBlur_13_841"
-            />
-          </filter>
-          <linearGradient
-            id="paint0_linear_13_841"
-            x1={-76.1304}
-            y1={-121.478}
-            x2={62.534}
-            y2={-107.459}
-            gradientUnits="userSpaceOnUse"
-          >
-            <stop stopColor="#C6FCA6" />
-            <stop offset={1} stopColor="#A7FCEE" stopOpacity={0.74} />
-          </linearGradient>
-          <clipPath id="clip0_13_841">
-            <rect width={342} height={366} rx={17.7102} fill="white" />
-          </clipPath>
-        </defs>
-      </svg>
+        style={{
+          backgroundImage: `url(${animatedBackgroundBeyond2})`,
+          backgroundSize: "cover",
+          backgroundPosition: "center",
+          backgroundRepeat: "no-repeat",
+          opacity: "0.6",
+        }}
+      />
       <div className="flex flex-col h-full">
-        <div className="flex items-center gap-2 mb-4">
+        <div className="flex items-center gap-2 mb-4 p-4">
           <img src={weridShape} className="w-12 h-12 mt-2" />
           <h2 className="text-lg font-semibold text-white">My Persona</h2>
         </div>
 
-        <p className="text-gray-400 text-sm mb-6">
+        <p className="text-gray-400 text-sm mb-6 px-4">
           {data.heading || "What defines me"}
         </p>
 
-        {/* Scattered persona items */}
-        <div className="relative flex-1 min-h-[200px]">
-          <div className="relative flex-1 w-full h-40">
+        {/* Scattered persona items
+        
+        Like I tell uthman, I don go hardcode am ooo!!!
+        
+        */}
+        <div
+          className="relative flex-1 min-h-[200px]"
+          style={{
+            backgroundImage: `url(${layla})`,
+
+            backgroundPosition: "center",
+            backgroundRepeat: "no-repeat",
+            backgroundSize: "cover",
+          }}
+        >
+          {/* <div className="relative flex-1 w-full h-40">
             {data.personaItems.map((item, index) => {
               // Some random scatter positions
               const positions = [
-                { top: "0%", left: "0%", rotate: "-35deg" },
-                { top: "30%", left: "0%", rotate: "-30deg" },
-                { top: "60%", left: "10%", rotate: "-60deg" },
-                { top: "30%", left: "30%", rotate: "-60deg" },
+                { top: "15%", left: "5%", rotate: "-25deg" },
+
+                { top: "8%", left: "45%", rotate: "15deg" },
+
+                { top: "55%", left: "8%", rotate: "-20deg" },
+
+                { top: "48%", left: "52%", rotate: "12deg" },
                 { top: "60%", left: "50%", rotate: "-75deg" },
                 { top: "70%", left: "60%", rotate: "-50deg" },
               ];
@@ -963,37 +811,23 @@ const Persona: React.FC<PersonaProps> = ({ data }) => {
               const pos = positions[index % positions.length];
 
               return (
-                <motion.div
+                <div
                   key={index}
                   style={{
                     position: "absolute",
                     top: pos.top,
                     left: pos.left,
-                    rotate: pos.rotate,
+                    transform: `rotate(${pos.rotate})`,
                     background:
                       "linear-gradient(99.16deg, #4CEBCA 1.14%, #84F5DE 69.47%)",
                   }}
                   className="text-[#151515] px-3 py-1.5 rounded-full text-sm font-medium whitespace-nowrap"
-                  initial={{ opacity: 0, scale: 0 }}
-                  animate={{
-                    opacity: 1,
-                    scale: 1,
-                    transition: {
-                      delay: index * 0.15,
-                      duration: 0.4,
-                      ease: "easeOut",
-                    },
-                  }}
-                  whileHover={{
-                    scale: 1.05,
-                    transition: { duration: 0.2 },
-                  }}
                 >
                   {item}
-                </motion.div>
+                </div>
               );
             })}
-          </div>
+          </div> */}
         </div>
       </div>
     </Card>
@@ -1003,6 +837,11 @@ const Persona: React.FC<PersonaProps> = ({ data }) => {
 const BeyondPortfolioLayout: React.FC<BeyondPortfolioSectionProps> = ({
   beyondPortfolioData,
 }) => {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const isInView = useInView(containerRef, {
+    once: false,
+  });
+
   if (!beyondPortfolioData) {
     return (
       <div className=" text-white p-4 flex items-center justify-center">
@@ -1015,7 +854,13 @@ const BeyondPortfolioLayout: React.FC<BeyondPortfolioSectionProps> = ({
   }
 
   return (
-    <div className=" text-white p-4">
+    <motion.div
+      ref={containerRef}
+      className=" text-white p-4"
+      variants={containerVariants}
+      initial="hidden"
+      animate={isInView ? "visible" : "hidden"}
+    >
       <div className="max-w-7xl mx-auto">
         {/* Mobile-first responsive grid */}
         <div
@@ -1054,7 +899,8 @@ const BeyondPortfolioLayout: React.FC<BeyondPortfolioSectionProps> = ({
           </div>
         </div>
       </div>
-    </div>
+    </motion.div>
   );
 };
+
 export default BeyondPortfolioLayout;

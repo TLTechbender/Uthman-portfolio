@@ -12,7 +12,6 @@ interface ProjectsSectionProps {
 const ProjectsSection: React.FC<ProjectsSectionProps> = ({ content }) => {
   return (
     <div className=" relative font-arial ">
-      {/* Background layer - lowest z-index */}
       <AnimatedGradientProjectsSection />
 
       {/* Content layer - higher z-index with proper positioning */}
@@ -28,7 +27,7 @@ const ProjectsSection: React.FC<ProjectsSectionProps> = ({ content }) => {
         </div>
 
         {/* Project Card Container */}
-        <div className="relative mb-8 sm:mb-10 lg:mb-12">
+        <div className="relative mb-8 sm:mb-10 lg:mb-12 z-10">
           {content.portfolioProjects.map((project, i) => (
             <ProjectCard
               key={i}
@@ -47,27 +46,59 @@ const ProjectsSection: React.FC<ProjectsSectionProps> = ({ content }) => {
 
         <div className="w-full flex justify-center px-4 sm:px-0">
           <Link
-            to={"/portfolio"}
-            className={`
-                        inline-flex items-center gap-3 group relative overflow-hidden
-                        bg-gradient-to-r from-[#0FB492] to-teal-500
-                        hover:from-teal-500 hover:to-emerald-500
-                        text-black hover:text-white font-semibold
-                        px-6 py-3 rounded-xl shadow-lg
-                        transition-all duration-300 ease-out
-                        transform hover:scale-105 hover:shadow-teal-500/25
-                        focus:outline-none focus:ring-2 focus:ring-teal-500
-                       
-                      `}
-            style={{
-              transition: "all 0.3s ease-out",
-              transitionDelay: "300ms",
-            }}
+            to="/portfolio"
+            className="
+          group relative inline-flex items-center gap-3 overflow-hidden
+          bg-transparent border-2 border-white 
+          text-white font-semibold
+          px-6 py-3 rounded-xl
+          transition-all duration-300 ease-out
+          hover:border-teal-400 hover:shadow-lg hover:shadow-teal-500/25
+          hover:scale-105
+          focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2 focus:ring-offset-gray-900
+        "
           >
-            <span className="relative z-10">view more</span>
-            <FaArrowRight className="w-4 h-4 relative z-10 transition-transform duration-300 ease-out -rotate-45 group-hover:rotate-0" />
+            <div
+              className="
+          absolute inset-0 
+          bg-gradient-to-r from-teal-500 to-emerald-500
+          transform scale-x-0 origin-left
+          transition-transform duration-300 ease-out
+          group-hover:scale-x-100
+        "
+            />
 
-            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/80 to-transparent opacity-0 group-hover:opacity-100 transform -skew-x-12 -translate-x-full group-hover:translate-x-full transition-all duration-700 ease-out" />
+            {/* Shimmer effect */}
+            <div
+              className="
+          absolute inset-0 
+          bg-gradient-to-r from-transparent via-white/20 to-transparent
+          transform -skew-x-12 -translate-x-full
+          transition-transform duration-500 ease-out
+          group-hover:translate-x-full
+          opacity-0 group-hover:opacity-100
+        "
+            />
+
+            {/* Content */}
+            <span
+              className="
+          relative z-10 capitalize
+          transition-colors duration-300 ease-out
+         
+        "
+            >
+              view more
+            </span>
+
+            <FaArrowRight
+              className="
+          w-4 h-4 relative z-10 
+          transform -rotate-45 
+          transition-all duration-300 ease-out
+          group-hover:rotate-0 group-hover:translate-x-1
+        "
+            />
           </Link>
         </div>
       </div>
