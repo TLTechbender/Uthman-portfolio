@@ -326,10 +326,10 @@ const PopupPortal: React.FC<PopupPortalProps> = ({ popup, mousePosition }) => {
 
   return createPortal(popupContent, document.body);
 };
-
 const MobilePopup: React.FC<MobilePopupProps> = ({ popup, onClose }) => {
   const popupContent = (
     <>
+      {/* Backdrop */}
       <motion.div
         className="fixed inset-0 bg-black/50 z-40"
         initial={{ opacity: 0 }}
@@ -337,36 +337,50 @@ const MobilePopup: React.FC<MobilePopupProps> = ({ popup, onClose }) => {
         exit={{ opacity: 0 }}
         onClick={onClose}
       />
-      <motion.div
-        variants={popupVariants}
-        initial="hidden"
-        animate="visible"
-        exit="exit"
-        className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-80 max-w-[90vw] max-h-[55vh] z-50"
-      >
-        <div className="bg-gray-900 border border-cyan-400/30 rounded-xl shadow-2xl flex flex-col">
-          <div className="flex justify-end items-center p-4 pb-2 border-b border-gray-700/50">
-            <button
-              onClick={onClose}
-              className="text-gray-400 hover:text-white transition-colors p-1"
+
+      {/* Centering Container - Uses flexbox for more reliable centering */}
+      <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+        <motion.div
+          variants={popupVariants}
+          initial="hidden"
+          animate="visible"
+          exit="exit"
+          className="w-full max-w-sm mx-auto"
+          style={{ maxHeight: "calc(100vh - 2rem)" }} // Ensures popup never exceeds viewport
+        >
+          <div className="bg-gray-900 border border-cyan-400/30 rounded-xl shadow-2xl flex flex-col h-full">
+            {/* Header - Fixed height */}
+            <div className="flex justify-end items-center p-4 pb-2 border-b border-gray-700/50 flex-shrink-0">
+              <button
+                onClick={onClose}
+                className="text-gray-400 hover:text-white transition-colors p-1 hover:bg-gray-800 rounded"
+                aria-label="Close popup"
+              >
+                ✕
+              </button>
+            </div>
+
+            {/* Content - Scrollable area */}
+            <div
+              className="p-4 pt-2 overflow-y-auto flex-1 min-h-0"
+              style={{
+                scrollbarWidth: "thin",
+                scrollbarColor: "#374151 #1f2937",
+              }}
             >
-              ✕
-            </button>
+              <PortableText
+                value={popup.textBlock}
+                components={portableTextComponents}
+              />
+            </div>
           </div>
-          <div className="p-4 pt-2 overflow-y-auto flex-1 custom-scrollbar">
-            <PortableText
-              value={popup.textBlock}
-              components={portableTextComponents}
-            />
-          </div>
-        </div>
-      </motion.div>
+        </motion.div>
+      </div>
     </>
   );
 
   return createPortal(popupContent, document.body);
 };
-
 // ================== ENHANCED CARD COMPONENT WITH ANIMATIONS ==================
 const Card: React.FC<CardProps> = ({
   children,
