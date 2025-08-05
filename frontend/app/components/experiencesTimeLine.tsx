@@ -201,7 +201,7 @@ const ExperiencesTimeline: React.FC<ExperiencesTimelineProps> = ({
       </motion.div>
 
       <div className="w-full p-4 sm:p-6 lg:p-8" ref={containerRef}>
-        <div className="max-w-4xl mx-auto">
+        <div className="max-w-4xl mx-auto overflow-x-hidden">
           {/* Section Header */}
           <motion.div
             className="mb-8 sm:mb-12 lg:mb-16 relative"
