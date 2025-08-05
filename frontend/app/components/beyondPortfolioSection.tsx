@@ -342,7 +342,7 @@ const MobilePopup: React.FC<MobilePopupProps> = ({ popup, onClose }) => {
         initial="hidden"
         animate="visible"
         exit="exit"
-        className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-80 max-w-[90vw] max-h-[80vh] z-50"
+        className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-80 max-w-[90vw] max-h-[55vh] z-50"
       >
         <div className="bg-gray-900 border border-cyan-400/30 rounded-xl shadow-2xl flex flex-col">
           <div className="flex justify-end items-center p-4 pb-2 border-b border-gray-700/50">
